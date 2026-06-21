@@ -4,6 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Conecta Lojista — Melhores Oportunidades Apple</title>
+  <meta name="description" content="Compare os melhores preços de atacado de iPhone, iPad, MacBook e Apple Watch de fornecedores verificados em todo o Brasil. Atualizado diariamente.">
+  <link rel="canonical" href="https://conectalojista.com.br/">
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Conecta Lojista">
+  <meta property="og:title" content="Conecta Lojista — Melhores Oportunidades Apple">
+  <meta property="og:description" content="Compare os melhores preços de atacado de iPhone, iPad, MacBook e Apple Watch de fornecedores verificados em todo o Brasil. Atualizado diariamente.">
+  <meta property="og:url" content="https://conectalojista.com.br/">
+  <meta property="og:image" content="https://conectalojista.com.br/assets/logo.png">
+  <meta property="og:locale" content="pt_BR">
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Conecta Lojista — Melhores Oportunidades Apple">
+  <meta name="twitter:description" content="Compare os melhores preços de atacado de produtos Apple de fornecedores verificados. Atualizado diariamente.">
+  <meta name="twitter:image" content="https://conectalojista.com.br/assets/logo.png">
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="apple-touch-icon" href="assets/favicon.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -327,6 +342,37 @@
       cursor: pointer; color: var(--gray-mid); transition: all .15s;
     }
     .view-btn:hover, .view-btn.active { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+
+    /* ── ACTIVE FILTER CHIPS ─────────────────────────────── */
+    .active-filters {
+      display: none; align-items: center; gap: 8px; flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .active-filters.show { display: flex; }
+    .af-label { font-size: 12px; font-weight: 600; color: var(--gray-mid); margin-right: 2px; }
+    .af-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--green-bg); color: var(--green);
+      border: 1px solid rgba(22,101,52,.18);
+      font-size: 12px; font-weight: 500;
+      padding: 5px 6px 5px 11px; border-radius: 18px;
+      max-width: 220px;
+    }
+    .af-chip span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .af-chip button {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 17px; height: 17px; border-radius: 50%;
+      background: rgba(22,101,52,.12); color: var(--green);
+      border: none; cursor: pointer; font-size: 12px; line-height: 1;
+      flex-shrink: 0; transition: background .15s;
+    }
+    .af-chip button:hover { background: rgba(22,101,52,.28); }
+    .af-clear-all {
+      background: none; border: none; cursor: pointer;
+      font-family: inherit; font-size: 12px; font-weight: 600;
+      color: var(--gray-mid); padding: 5px 6px; transition: color .15s;
+    }
+    .af-clear-all:hover { color: var(--green); }
 
     /* ── CHIPS ───────────────────────────────────────────── */
     .chip-cond {
@@ -817,7 +863,7 @@
       <svg class="ic-search" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
       </svg>
-      <input id="inp-search" type="text" placeholder="Buscar modelo, fornecedor, cidade…" autocomplete="off" oninput="applyAndRender()">
+      <input id="inp-search" type="text" placeholder="Buscar modelo, fornecedor, cidade…" autocomplete="off" oninput="onSearchInput()">
     </div>
 
     <!-- AUTH AREA -->
@@ -858,7 +904,7 @@
       <strong id="gb-suppliers">0</strong> fornecedores
     </div>
     <div class="gbar-sep"></div>
-    <div class="gbar-item">Atualizado hoje</div>
+    <div class="gbar-item" id="gb-updated">Atualizado hoje</div>
     <div class="gbar-category" id="gb-cat">iPhone</div>
   </div>
 </div>
@@ -936,7 +982,7 @@
     <!-- Localização -->
     <div class="filter-section">
       <div class="filter-label">Localização</div>
-      <input class="loc-input" id="f-location" type="text" placeholder="Buscar cidade ou estado…" oninput="applyAndRender()">
+      <input class="loc-input" id="f-location" type="text" placeholder="Buscar cidade ou estado…" oninput="onSearchInput()">
     </div>
 
     <!-- Categoria -->
@@ -1045,6 +1091,9 @@
       </div>
     </div>
 
+    <!-- Active filter chips -->
+    <div class="active-filters" id="active-filters"></div>
+
     <!-- Controls bar -->
     <div class="controls-bar">
       <select class="ctrl-select" id="f-state" onchange="applyAndRender()">
@@ -1118,6 +1167,9 @@
 
   var STRIPE_CHECKOUT_URL = 'https://buy.stripe.com/test_fZubJ061f47uaqX3C07ok00';
 
+  /* Rótulo de preço — fonte única usada no header e em qualquer CTA de assinatura */
+  var PRICE_LABEL = 'R$ 100/mês';
+
   function renderHeaderAuth() {
     var el = document.getElementById('header-auth');
     if (!el) return;
@@ -1128,7 +1180,7 @@
     } else {
       el.innerHTML =
         '<button class="btn-hdr-login" onclick="openAuthModal(\'login\')">Entrar</button>' +
-        '<button class="btn-hdr-assine" onclick="openUpgradeModal()">Assinar — R$ 100/mês</button>';
+        '<button class="btn-hdr-assine" onclick="openUpgradeModal()">Assinar — ' + PRICE_LABEL + '</button>';
     }
   }
 
@@ -1464,6 +1516,39 @@
     document.getElementById('hs-cities').textContent    = cit.size;
     document.getElementById('gb-total').textContent     = allData.length.toLocaleString('pt-BR');
     document.getElementById('gb-suppliers').textContent = sup.size;
+    updateFreshness();
+  }
+
+  /* Tenta interpretar data_atualizacao em vários formatos (ddmm, dd/mm, ISO) */
+  function parseUpdatedDate(s) {
+    if (!s) return null;
+    var m = String(s).match(/(\d{4})-(\d{2})-(\d{2})/);            // ISO yyyy-mm-dd
+    if (m) return new Date(+m[1], +m[2]-1, +m[3]);
+    m = String(s).match(/(\d{2})\/(\d{2})(?:\/(\d{4}))?/);          // dd/mm[/yyyy]
+    if (m) return new Date(m[3] ? +m[3] : (new Date()).getFullYear(), +m[2]-1, +m[1]);
+    m = String(s).match(/^(\d{2})(\d{2})\b/);                       // ddmm (ex: "2106 14:30")
+    if (m) return new Date((new Date()).getFullYear(), +m[2]-1, +m[1]);
+    return null;
+  }
+
+  function updateFreshness() {
+    var el = document.getElementById('gb-updated');
+    if (!el) return;
+    var latest = null;
+    allData.forEach(function(o){
+      var d = parseUpdatedDate(o.data_atualizacao);
+      if (d && !isNaN(d.getTime()) && (!latest || d > latest)) latest = d;
+    });
+    var fmt = { day:'2-digit', month:'2-digit' };
+    if (latest) {
+      var t = new Date(); t.setHours(0,0,0,0);
+      var l = new Date(latest); l.setHours(0,0,0,0);
+      el.textContent = (l.getTime() === t.getTime())
+        ? 'Atualizado hoje'
+        : 'Atualizado em ' + latest.toLocaleDateString('pt-BR', fmt);
+    } else {
+      el.textContent = 'Atualizado em ' + new Date().toLocaleDateString('pt-BR', fmt);
+    }
   }
 
   /* ── LOCATION DROPDOWNS ─────────────────────────────── */
@@ -1497,6 +1582,13 @@
     filtered = compute();
     render();
   };
+
+  /* Busca/localização: debounce para não refiltrar a cada tecla */
+  function debounce(fn, wait) {
+    var t;
+    return function() { clearTimeout(t); t = setTimeout(fn, wait); };
+  }
+  window.onSearchInput = debounce(function(){ window.applyAndRender(); }, 250);
 
   function compute() {
     var data = allData.slice();
@@ -1634,6 +1726,80 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  /* ── GREEN BAR: categoria selecionada ───────────────── */
+  var CAT_NAMES = { iphone:'iPhone', ipad:'iPad', macbook:'MacBook', watch:'Apple Watch' };
+  function updateCategoryBadge() {
+    var el = document.getElementById('gb-cat');
+    if (!el) return;
+    var checked = Array.from(document.querySelectorAll('.check-input:checked'))
+      .map(function(e){ return e.dataset.cat; });
+    el.textContent = (checked.length === 0 || checked.length === 4)
+      ? 'Todas as categorias'
+      : checked.map(function(c){ return CAT_NAMES[c] || c; }).join(', ');
+  }
+
+  /* ── CHIPS DE FILTROS ATIVOS ────────────────────────── */
+  function chip(label, type, value) {
+    return '<span class="af-chip"><span>' + esc(label) + '</span>' +
+      '<button title="Remover" onclick="removeFilter(\'' + type + '\',\'' +
+      esc(String(value)).replace(/'/g,'\\\'') + '\')">✕</button></span>';
+  }
+
+  function renderActiveFilters() {
+    var box = document.getElementById('active-filters');
+    if (!box) return;
+    var chips = [];
+
+    var q = document.getElementById('inp-search').value.trim();
+    if (q) chips.push(chip('Busca: ' + q, 'search', ''));
+
+    var loc = document.getElementById('f-location').value.trim();
+    if (loc) chips.push(chip('Local: ' + loc, 'location', ''));
+
+    var st = document.getElementById('f-state').value;
+    if (st) chips.push(chip(st, 'state', ''));
+
+    var ct = document.getElementById('f-city').value;
+    if (ct) chips.push(chip(ct, 'city', ''));
+
+    selModelos.forEach(function(m){ chips.push(chip(m, 'modelo', m)); });
+    selStorages.forEach(function(a){ chips.push(chip(a, 'arm', a)); });
+    selCores.forEach(function(c){ chips.push(chip(c, 'cor', c)); });
+
+    var pmin = document.getElementById('f-pmin-inp').value;
+    var pmax = document.getElementById('f-pmax-inp').value;
+    if (pmin) chips.push(chip('Mín R$ ' + Number(pmin).toLocaleString('pt-BR'), 'pmin', ''));
+    if (pmax) chips.push(chip('Máx R$ ' + Number(pmax).toLocaleString('pt-BR'), 'pmax', ''));
+
+    var cond = document.querySelector('input[name="cond"]:checked');
+    if (cond && cond.value) chips.push(chip(cond.value, 'cond', ''));
+
+    if (chips.length === 0) { box.className = 'active-filters'; box.innerHTML = ''; return; }
+    box.className = 'active-filters show';
+    box.innerHTML = '<span class="af-label">Filtros ativos:</span>' + chips.join('') +
+      '<button class="af-clear-all" onclick="clearFilters()">Limpar tudo</button>';
+  }
+
+  window.removeFilter = function(type, value) {
+    switch (type) {
+      case 'search':   document.getElementById('inp-search').value = ''; break;
+      case 'location': document.getElementById('f-location').value = ''; break;
+      case 'state':    document.getElementById('f-state').value = ''; break;
+      case 'city':     document.getElementById('f-city').value = ''; break;
+      case 'pmin':     document.getElementById('f-pmin-inp').value = ''; break;
+      case 'pmax':
+        document.getElementById('f-pmax-inp').value = '';
+        document.getElementById('f-pmax').value = 50000;
+        document.getElementById('pmax-disp').textContent = '50.000';
+        break;
+      case 'cond':     document.querySelector('input[name="cond"][value=""]').checked = true; break;
+      case 'modelo':   selModelos.delete(value); renderModeloList(); break;
+      case 'arm':      selStorages.delete(value); renderArmList(); break;
+      case 'cor':      selCores.delete(value); renderCorList(); break;
+    }
+    applyAndRender();
+  };
+
   /* ── RENDER ─────────────────────────────────────────── */
   function render() {
     var total = filtered.length;
@@ -1647,6 +1813,10 @@
 
     /* green bar */
     document.getElementById('gb-total').textContent = total.toLocaleString('pt-BR');
+    updateCategoryBadge();
+
+    /* chips de filtros ativos */
+    renderActiveFilters();
 
     /* botão ver resultados — atualiza contagem em tempo real */
     var btnVer = document.getElementById('btn-ver-resultados');
