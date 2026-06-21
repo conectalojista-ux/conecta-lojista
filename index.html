@@ -558,6 +558,15 @@
     }
     .btn-ver-resultados:hover { opacity: .85; }
 
+    /* ── SIDEBAR HANDLE (visual drag bar) ───────────────── */
+    .sidebar-handle {
+      display: none;
+      width: 44px; height: 4px;
+      background: var(--gray-border);
+      border-radius: 2px;
+      margin: 12px auto 2px;
+    }
+
     /* ── RESPONSIVE ──────────────────────────────────────── */
     @media (max-width: 1000px) {
       .item-supplier { width: 150px; }
@@ -569,9 +578,10 @@
 
     /* Tablet / Mobile — sidebar vira drawer de baixo */
     @media (max-width: 768px) {
+      /* Sidebar → bottom sheet */
       .sidebar {
         position: fixed; bottom: 0; left: 0; right: 0; top: auto !important;
-        width: 100% !important; max-height: 80vh;
+        width: 100% !important; max-height: 82vh;
         border-radius: 20px 20px 0 0;
         border-right: none; border-top: 1px solid var(--gray-border);
         transform: translateY(100%);
@@ -580,19 +590,41 @@
         box-shadow: 0 -8px 40px rgba(0,0,0,.18);
       }
       .sidebar.open { transform: translateY(0); }
-      .sidebar-handle { display: block; cursor: pointer; padding: 8px 0 4px; }
+      .sidebar-handle { display: block; cursor: pointer; }
       .btn-filtros-mobile { display: flex; }
       .btn-sidebar-fechar { display: flex; }
       .sidebar-footer { display: block; }
 
-      .content { padding: 16px 14px 100px; }
+      /* Layout */
+      .content { padding: 16px 12px 100px; }
       .controls-bar { gap: 6px; padding: 8px 10px; }
-      .list-item { padding: 12px 14px; gap: 10px; }
+
+      /* List items compactos */
+      .list-item { padding: 11px 12px; gap: 10px; }
       .item-icon { width: 44px; height: 44px; }
       .item-name { font-size: 13px; }
       .item-price { font-size: 17px; }
+
+      /* WhatsApp: área de toque mínima 44px (Apple HIG) */
+      .btn-wa, .btn-lock {
+        min-height: 44px; min-width: 44px;
+        display: inline-flex; align-items: center; justify-content: center;
+      }
       .btn-wa span { display: none; }
-      .btn-wa { padding: 10px 13px; }
+      .btn-wa { padding: 0 14px; }
+      .btn-lock { padding: 0 12px; font-size: 12px; }
+
+      /* Grid 2 colunas no mobile */
+      .results-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .gc-hero { height: 80px; font-size: 28px; }
+      .gc-name { font-size: 12px; line-height: 1.3; }
+      .gc-price { font-size: 16px; }
+      .gc-price-label { font-size: 9px; }
+      .gc-body { padding: 10px 10px; gap: 4px; }
+      .gc-footer { padding: 0 10px 10px; }
+      .gc-footer .btn-wa, .gc-footer .btn-lock { font-size: 12px; }
+      .gc-supplier { font-size: 10.5px; }
+
       /* Green bar: scroll horizontal sem quebrar */
       .green-bar-inner { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; scrollbar-width: none; }
       .green-bar-inner::-webkit-scrollbar { display: none; }
@@ -612,24 +644,22 @@
       .btn-hdr-assine { display: none; }
     }
 
-    /* Mobile pequeno */
+    /* Mobile pequeno — empilha list-item */
     @media (max-width: 480px) {
       .header-inner { padding: 10px 12px 8px; }
       .item-price-updated { display: none; }
-      /* list items: empilha foto+info / preço+botão */
-      .list-item { flex-wrap: wrap; padding: 12px; gap: 8px 10px; }
+      .list-item { flex-wrap: wrap; padding: 10px 12px; gap: 8px 10px; }
       .item-icon { order: 1; width: 40px; height: 40px; }
       .item-main { order: 2; flex: 1; min-width: 0; }
       .item-price-wrap { order: 3; flex: 1; text-align: left; min-width: auto; }
       .item-action { order: 4; }
-      .item-price { font-size: 16px; }
-      /* grid: 2 colunas compactas */
-      .results-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-      .gc-hero { height: 80px; font-size: 30px; }
-      .gc-price { font-size: 17px; }
-      .gc-name { font-size: 13px; }
-      .gc-body { padding: 10px 12px; gap: 4px; }
-      .gc-footer { padding: 0 12px 12px; }
+      .item-price { font-size: 15px; }
+      /* grid: ainda mais compacto em telas < 480px */
+      .gc-hero { height: 70px; }
+      .gc-name { font-size: 11px; }
+      .gc-price { font-size: 15px; }
+      .gc-body { padding: 8px 8px; }
+      .gc-footer { padding: 0 8px 8px; }
     }
 
     /* Tela muito pequena */
@@ -1400,6 +1430,11 @@
     populateLocationSelects();
     populateDynamicFilters();
     updateGlobalStats();
+    if (window.innerWidth <= 768) {
+      currentView = 'grid';
+      document.getElementById('btn-list').classList.remove('active');
+      document.getElementById('btn-grid').classList.add('active');
+    }
     applyAndRender();
   }
 
