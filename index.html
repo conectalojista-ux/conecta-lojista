@@ -1430,12 +1430,10 @@
     populateLocationSelects();
     populateDynamicFilters();
     updateGlobalStats();
-    if (window.innerWidth <= 768) {
-      currentView = 'grid';
-      document.getElementById('btn-list').classList.remove('active');
-      document.getElementById('btn-grid').classList.add('active');
-    }
     applyAndRender();
+    if (window.innerWidth <= 768) {
+      setView('grid');
+    }
   }
 
   /* ── COUNTS ─────────────────────────────────────────── */
