@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conecta Lojista — Melhores Oportunidades Apple</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green:       #1b5e20;
+      --green-mid:   #2e7d32;
+      --green-light: #43a047;
+      --green-bg:    #e8f5e9;
+      --green-wa:    #25d366;
+      --green-wa-h:  #1ebe57;
+      --black:       #111111;
+      --gray-dark:   #333;
+      --gray:        #666;
+      --gray-mid:    #999;
+      --gray-light:  #f4f4f4;
+      --gray-border: #e2e2e2;
+      --white:       #fff;
+      --sidebar-w:   252px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #fff;
+      color: var(--black);
+      min-height: 100vh;
+      font-size: 14px;
+    }
+
+    /* ── HEADER ──────────────────────────────────────────── */
+    .header {
+      position: sticky; top: 0; z-index: 300;
+      background: #fff;
+      border-bottom: 1px solid var(--gray-border);
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    .header-inner {
+      max-width: 1400px; margin: 0 auto;
+      padding: 0 20px;
+      height: 64px;
+      display: flex; align-items: center; gap: 18px;
+    }
+
+    .logo-link { display: flex; align-items: center; flex-shrink: 0; text-decoration: none; }
+    .logo-link img { height: 46px; width: auto; display: block; }
+    .logo-text-fallback {
+      display: none; flex-direction: column; line-height: 1.1;
+    }
+    .logo-text-fallback .t1 { font-size: 16px; font-weight: 800; color: var(--black); }
+    .logo-text-fallback .t1 em { color: var(--green); font-style: normal; }
+    .logo-text-fallback .t2 { font-size: 9px; color: var(--gray); letter-spacing: .07em; text-transform: uppercase; }
+
+    .header-search {
+      flex: 1; max-width: 520px;
+      display: flex; align-items: center;
+      background: var(--gray-light);
+      border: 1.5px solid transparent;
+      border-radius: 8px; padding: 0 14px; gap: 8px;
+      transition: border-color .15s, background .15s;
+    }
+    .header-search:focus-within { background: #fff; border-color: var(--green); }
+    .header-search input {
+      flex: 1; border: none; background: transparent; outline: none;
+      font-family: 'Poppins', sans-serif; font-size: 13.5px;
+      color: var(--black); padding: 10px 0;
+    }
+    .header-search input::placeholder { color: #aaa; }
+    .ic-search { color: #bbb; flex-shrink: 0; }
+    .header-search:focus-within .ic-search { color: var(--green); }
+
+    .header-stats {
+      margin-left: auto; display: flex; align-items: center; gap: 16px;
+    }
+    .hstat {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--gray);
+    }
+    .hstat strong { color: var(--black); font-weight: 700; font-size: 13px; }
+    .hstat-divider { width: 1px; height: 20px; background: var(--gray-border); }
+
+    /* ── GREEN BAR ───────────────────────────────────────── */
+    .green-bar {
+      background: var(--green);
+      padding: 8px 20px;
+    }
+    .green-bar-inner {
+      max-width: 1400px; margin: 0 auto;
+      display: flex; align-items: center; gap: 24px;
+    }
+    .gbar-item {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 12px; color: rgba(255,255,255,.75);
+    }
+    .gbar-item strong { color: #fff; font-weight: 600; }
+    .gbar-sep { width: 1px; height: 14px; background: rgba(255,255,255,.2); }
+    .gbar-category {
+      margin-left: auto;
+      background: rgba(255,255,255,.15);
+      color: #fff; font-size: 12px; font-weight: 600;
+      padding: 4px 12px; border-radius: 20px;
+    }
+
+    /* ── LAYOUT ──────────────────────────────────────────── */
+    .app-body {
+      max-width: 1400px; margin: 0 auto;
+      display: flex; align-items: flex-start;
+      padding: 0;
+    }
+
+    /* ── SIDEBAR ─────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w); flex-shrink: 0;
+      background: #f9f9f9;
+      border-right: 1px solid var(--gray-border);
+      min-height: calc(100vh - 108px);
+      position: sticky; top: 64px;
+      max-height: calc(100vh - 64px);
+      overflow-y: auto;
+    }
+
+    .sidebar-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 18px 12px;
+      border-bottom: 1px solid var(--gray-border);
+    }
+    .sidebar-title { font-size: 14px; font-weight: 700; color: var(--black); }
+    .btn-limpar {
+      font-family: 'Poppins', sans-serif; font-size: 12px;
+      font-weight: 500; color: var(--green); background: none;
+      border: none; cursor: pointer; padding: 3px 0;
+      text-decoration: underline;
+    }
+    .btn-limpar:hover { color: var(--green-mid); }
+
+    .filter-section {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--gray-border);
+    }
+    .filter-label {
+      font-size: 11.5px; font-weight: 700; color: var(--gray);
+      text-transform: uppercase; letter-spacing: .07em;
+      margin-bottom: 12px;
+    }
+
+    /* Localização */
+    .loc-input {
+      width: 100%; padding: 9px 12px;
+      border: 1.5px solid var(--gray-border);
+      border-radius: 7px; outline: none;
+      font-family: 'Poppins', sans-serif; font-size: 13px;
+      color: var(--black); background: #fff;
+      transition: border-color .15s;
+    }
+    .loc-input:focus { border-color: var(--green); }
+    .loc-input::placeholder { color: #bbb; }
+
+    /* Checkboxes */
+    .check-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 0; cursor: pointer;
+    }
+    .check-item:hover .check-label { color: var(--green); }
+    .check-left { display: flex; align-items: center; gap: 9px; }
+    .check-input {
+      width: 16px; height: 16px; cursor: pointer; accent-color: var(--green);
+      flex-shrink: 0;
+    }
+    .check-label { font-size: 13px; color: var(--gray-dark); font-weight: 400; }
+    .check-count {
+      font-size: 11px; color: var(--gray-mid); font-weight: 500;
+      background: var(--gray-light); padding: 2px 7px; border-radius: 20px;
+    }
+
+    /* Preço */
+    .price-range-wrap { display: flex; flex-direction: column; gap: 10px; }
+    .price-range-values {
+      display: flex; justify-content: space-between;
+      font-size: 12px; color: var(--gray);
+    }
+    .price-range-values span { font-weight: 600; color: var(--black); }
+    .range-slider {
+      width: 100%; accent-color: var(--green); cursor: pointer; height: 4px;
+    }
+    .price-inputs { display: flex; gap: 8px; }
+    .price-input {
+      flex: 1; padding: 7px 10px;
+      border: 1.5px solid var(--gray-border); border-radius: 7px;
+      font-family: 'Poppins', sans-serif; font-size: 12px;
+      color: var(--black); outline: none; background: #fff;
+      transition: border-color .15s;
+    }
+    .price-input:focus { border-color: var(--green); }
+    .price-input::placeholder { color: #bbb; }
+
+    /* Condição radios */
+    .radio-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 5px 0; cursor: pointer;
+    }
+    .radio-input {
+      width: 15px; height: 15px; cursor: pointer; accent-color: var(--green);
+    }
+    .radio-label { font-size: 13px; color: var(--gray-dark); }
+
+    /* ── CONTENT ─────────────────────────────────────────── */
+    .content { flex: 1; min-width: 0; padding: 20px 24px 48px; }
+
+    /* Results header */
+    .results-head {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap; margin-bottom: 16px;
+    }
+    .results-title { font-size: 19px; font-weight: 700; color: var(--black); }
+    .results-sub { font-size: 12.5px; color: var(--gray); margin-top: 2px; }
+    .results-sub strong { color: var(--black); }
+
+    /* Controls bar */
+    .controls-bar {
+      display: flex; align-items: center; gap: 8px;
+      flex-wrap: wrap;
+      background: var(--gray-light); border-radius: 8px;
+      padding: 8px 12px; margin-bottom: 18px;
+    }
+    .ctrl-select {
+      padding: 6px 10px; border-radius: 6px;
+      border: 1.5px solid var(--gray-border); background: #fff;
+      font-family: 'Poppins', sans-serif; font-size: 12.5px;
+      color: var(--gray-dark); outline: none; cursor: pointer;
+      transition: border-color .15s;
+    }
+    .ctrl-select:focus { border-color: var(--green); }
+    .ctrl-sep { margin: 0 2px; color: var(--gray-border); }
+    .ctrl-right { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+    .view-btn {
+      width: 30px; height: 30px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1.5px solid var(--gray-border); background: #fff;
+      cursor: pointer; color: var(--gray-mid); transition: all .15s;
+    }
+    .view-btn:hover, .view-btn.active { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+
+    /* ── LIST ITEMS ──────────────────────────────────────── */
+    .results-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .list-item {
+      display: flex; align-items: center; gap: 14px;
+      background: #fff;
+      border: 1px solid var(--gray-border);
+      border-radius: 10px; padding: 14px 16px;
+      transition: box-shadow .18s, border-color .18s;
+    }
+    .list-item:hover { box-shadow: 0 4px 18px rgba(0,0,0,.09); border-color: #ccc; }
+
+    .item-icon {
+      width: 52px; height: 52px; flex-shrink: 0;
+      background: var(--green-bg);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--green);
+    }
+
+    .item-main { flex: 1; min-width: 0; }
+    .item-name {
+      font-size: 14.5px; font-weight: 700; color: var(--black);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 5px;
+    }
+    .item-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+    .chip-storage {
+      font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+      background: var(--green-bg); color: var(--green); letter-spacing: .03em;
+    }
+    .chip-usado {
+      font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+      background: #fff3e0; color: #bf360c;
+    }
+    .chip-novo {
+      font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+      background: var(--green-bg); color: var(--green);
+    }
+    .chip-cor {
+      font-size: 10.5px; font-weight: 500; padding: 2px 8px; border-radius: 20px;
+      background: var(--gray-light); color: var(--gray);
+    }
+
+    .item-supplier {
+      width: 180px; flex-shrink: 0;
+    }
+    .supplier-name {
+      font-size: 13px; font-weight: 600; color: var(--gray-dark);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .supplier-name::before { content: '• '; color: var(--green); }
+    .supplier-city {
+      font-size: 11.5px; color: var(--gray-mid); margin-top: 3px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .supplier-date { font-size: 11px; color: var(--gray-mid); margin-top: 2px; }
+
+    .item-price-wrap {
+      text-align: right; flex-shrink: 0; min-width: 110px;
+    }
+    .item-price {
+      font-size: 19px; font-weight: 800; color: var(--black);
+      letter-spacing: -0.5px;
+    }
+    .item-price-updated { font-size: 10.5px; color: var(--gray-mid); margin-top: 3px; }
+
+    .item-action { flex-shrink: 0; }
+    .btn-wa {
+      display: flex; align-items: center; gap: 7px;
+      padding: 10px 16px; border-radius: 8px;
+      background: var(--green-wa); color: #fff;
+      font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600;
+      text-decoration: none; border: none; cursor: pointer;
+      white-space: nowrap; transition: background .15s;
+    }
+    .btn-wa:hover { background: var(--green-wa-h); }
+    .btn-wa.no-contact {
+      background: #e0e0e0; color: #999; cursor: default;
+    }
+    .btn-wa.no-contact:hover { background: #e0e0e0; }
+
+    /* ── GRID MODE ───────────────────────────────────────── */
+    .results-grid {
+      display: none;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 14px;
+    }
+    .results-grid.active { display: grid; }
+    .results-list.hidden { display: none; }
+
+    .grid-card {
+      background: #fff; border: 1px solid var(--gray-border);
+      border-radius: 10px; overflow: hidden;
+      transition: box-shadow .18s, transform .18s;
+      border-top: 3px solid var(--green);
+    }
+    .grid-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,.1); transform: translateY(-2px); }
+    .grid-card-body { padding: 16px; }
+    .gc-name { font-size: 14px; font-weight: 700; color: var(--black); margin-bottom: 4px; }
+    .gc-cap { font-size: 12px; font-weight: 600; color: var(--green); margin-bottom: 10px; }
+    .gc-price { font-size: 20px; font-weight: 800; color: var(--black); margin-bottom: 12px; }
+    .gc-meta { font-size: 12px; color: var(--gray); line-height: 1.8; }
+    .gc-meta strong { color: var(--gray-dark); font-weight: 500; }
+    .grid-card-footer { padding: 0 16px 14px; }
+
+    /* ── PAGINATION ──────────────────────────────────────── */
+    .pagination {
+      display: flex; align-items: center; justify-content: center;
+      gap: 5px; margin-top: 32px; flex-wrap: wrap;
+    }
+    .pg {
+      min-width: 34px; height: 34px; padding: 0 8px;
+      border-radius: 7px; border: 1.5px solid var(--gray-border);
+      background: #fff; font-family: 'Poppins', sans-serif;
+      font-size: 13px; font-weight: 500; color: var(--gray-dark);
+      cursor: pointer; display: inline-flex; align-items: center;
+      justify-content: center; transition: all .15s;
+    }
+    .pg:hover:not(:disabled):not(.active) { border-color: var(--green); color: var(--green); }
+    .pg.active { background: var(--green); color: #fff; border-color: var(--green); }
+    .pg:disabled { opacity: .3; cursor: default; }
+    .pg-dots { color: #bbb; padding: 0 3px; line-height: 34px; }
+
+    /* ── STATES ──────────────────────────────────────────── */
+    .empty-state {
+      text-align: center; padding: 72px 24px;
+      color: var(--gray);
+    }
+    .empty-state svg { margin-bottom: 16px; }
+    .empty-state h3 { font-size: 17px; font-weight: 700; color: var(--black); margin-bottom: 6px; }
+
+    .loading-state {
+      text-align: center; padding: 72px 24px;
+    }
+    .spinner {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 3px solid var(--gray-border); border-top-color: var(--green);
+      animation: spin .7s linear infinite; margin: 0 auto 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── MOBILE SIDEBAR TOGGLE ───────────────────────────── */
+    .btn-filtros-mobile {
+      display: none;
+      position: fixed; bottom: 20px; right: 20px; z-index: 400;
+      padding: 12px 20px; border-radius: 24px;
+      background: var(--green); color: #fff;
+      font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600;
+      border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(27,94,32,.4);
+    }
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0; z-index: 290;
+      background: rgba(0,0,0,.35);
+    }
+
+    /* ── RESPONSIVE ──────────────────────────────────────── */
+    @media (max-width: 1000px) {
+      .item-supplier { width: 150px; }
+    }
+    @media (max-width: 860px) {
+      .item-supplier { display: none; }
+      .hstat:not(:first-child) { display: none; }
+    }
+    @media (max-width: 720px) {
+      .sidebar {
+        position: fixed; left: -260px; top: 0; bottom: 0; z-index: 300;
+        min-height: 100vh; max-height: 100vh;
+        transition: left .25s; box-shadow: none;
+      }
+      .sidebar.open { left: 0; box-shadow: 4px 0 20px rgba(0,0,0,.15); }
+      .sidebar-overlay.open { display: block; }
+      .btn-filtros-mobile { display: flex; align-items: center; gap: 8px; }
+      .content { padding: 16px 14px 80px; }
+      .list-item { padding: 12px; gap: 10px; }
+      .item-icon { width: 42px; height: 42px; }
+      .item-name { font-size: 13px; }
+      .item-price { font-size: 16px; }
+      .btn-wa span { display: none; }
+      .btn-wa { padding: 10px 12px; }
+    }
+    @media (max-width: 480px) {
+      .item-price-updated { display: none; }
+      .header-inner { gap: 12px; padding: 0 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <a href="#" class="logo-link">
+      <img src="assets/logo.png" alt="Conecta Lojista"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="logo-text-fallback">
+        <span class="t1">CONECTA <em>LOJISTA</em></span>
+        <span class="t2">Conectando lojistas às melhores oportunidades</span>
+      </div>
+    </a>
+
+    <div class="header-search">
+      <svg class="ic-search" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input id="inp-search" type="text" placeholder="Buscar modelo, fornecedor, cidade…" autocomplete="off">
+    </div>
+
+    <div class="header-stats">
+      <div class="hstat">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        <strong id="hs-suppliers">—</strong> fornecedores
+      </div>
+      <div class="hstat-divider"></div>
+      <div class="hstat">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        <strong id="hs-total">—</strong> ofertas
+      </div>
+      <div class="hstat-divider"></div>
+      <div class="hstat">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <strong id="hs-cities">—</strong> cidades
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- GREEN STATS BAR -->
+<div class="green-bar">
+  <div class="green-bar-inner">
+    <div class="gbar-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg>
+      <strong id="gb-total">0</strong> produtos
+    </div>
+    <div class="gbar-sep"></div>
+    <div class="gbar-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+      <strong id="gb-suppliers">0</strong> fornecedores
+    </div>
+    <div class="gbar-sep"></div>
+    <div class="gbar-item">Atualizado hoje</div>
+    <div class="gbar-category" id="gb-cat">iPhone</div>
+  </div>
+</div>
+
+<!-- MAIN BODY -->
+<div class="app-body">
+
+  <!-- SIDEBAR OVERLAY (mobile) -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">Filtros</span>
+      <button class="btn-limpar" onclick="clearFilters()">Limpar tudo</button>
+    </div>
+
+    <!-- Localização -->
+    <div class="filter-section">
+      <div class="filter-label">Localização</div>
+      <input class="loc-input" id="f-location" type="text" placeholder="Buscar cidade ou estado…" oninput="applyAndRender()">
+    </div>
+
+    <!-- Categoria -->
+    <div class="filter-section">
+      <div class="filter-label">Categoria</div>
+      <div id="cat-filters">
+        <label class="check-item">
+          <div class="check-left">
+            <input class="check-input" type="checkbox" data-cat="iphone" checked onchange="applyAndRender()">
+            <span class="check-label">📱 iPhone</span>
+          </div>
+          <span class="check-count" id="cc-iphone">0</span>
+        </label>
+        <label class="check-item">
+          <div class="check-left">
+            <input class="check-input" type="checkbox" data-cat="ipad" onchange="applyAndRender()">
+            <span class="check-label">📟 iPad</span>
+          </div>
+          <span class="check-count" id="cc-ipad">0</span>
+        </label>
+        <label class="check-item">
+          <div class="check-left">
+            <input class="check-input" type="checkbox" data-cat="macbook" onchange="applyAndRender()">
+            <span class="check-label">💻 MacBook</span>
+          </div>
+          <span class="check-count" id="cc-macbook">0</span>
+        </label>
+        <label class="check-item">
+          <div class="check-left">
+            <input class="check-input" type="checkbox" data-cat="watch" onchange="applyAndRender()">
+            <span class="check-label">⌚ Apple Watch</span>
+          </div>
+          <span class="check-count" id="cc-watch">0</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Faixa de Preço -->
+    <div class="filter-section">
+      <div class="filter-label">Faixa de Preço</div>
+      <div class="price-range-wrap">
+        <div class="price-range-values">
+          <span>R$ <span id="pmin-disp">0</span></span>
+          <span>R$ <span id="pmax-disp">50.000</span></span>
+        </div>
+        <input class="range-slider" type="range" id="f-pmax" min="0" max="50000" step="100" value="50000" oninput="onPriceRange()">
+        <div class="price-inputs">
+          <input class="price-input" id="f-pmin-inp" type="number" placeholder="Mín" min="0" oninput="applyAndRender()">
+          <input class="price-input" id="f-pmax-inp" type="number" placeholder="Máx" max="50000" oninput="applyAndRender()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Condição -->
+    <div class="filter-section">
+      <div class="filter-label">Condição</div>
+      <label class="radio-item">
+        <input class="radio-input" type="radio" name="cond" value="" checked onchange="applyAndRender()">
+        <span class="radio-label">Todos</span>
+      </label>
+      <label class="radio-item">
+        <input class="radio-input" type="radio" name="cond" value="Novo" onchange="applyAndRender()">
+        <span class="radio-label">Novo</span>
+      </label>
+      <label class="radio-item">
+        <input class="radio-input" type="radio" name="cond" value="Usado" onchange="applyAndRender()">
+        <span class="radio-label">Usado</span>
+      </label>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <!-- Results header -->
+    <div class="results-head">
+      <div>
+        <div class="results-title">Resultados da Busca</div>
+        <div class="results-sub" id="results-sub">Carregando…</div>
+      </div>
+    </div>
+
+    <!-- Controls bar -->
+    <div class="controls-bar">
+      <select class="ctrl-select" id="f-state" onchange="applyAndRender()">
+        <option value="">Todos os estados</option>
+      </select>
+      <select class="ctrl-select" id="f-city" onchange="applyAndRender()">
+        <option value="">Todas as cidades</option>
+      </select>
+      <select class="ctrl-select" id="sel-perpage" onchange="onPerPageChange()">
+        <option value="25">25 por página</option>
+        <option value="50">50 por página</option>
+        <option value="100">100 por página</option>
+        <option value="10">10 por página</option>
+      </select>
+      <select class="ctrl-select" id="sel-sort" onchange="applyAndRender()">
+        <option value="preco-asc">Menor preço</option>
+        <option value="preco-desc">Maior preço</option>
+        <option value="az">A → Z</option>
+      </select>
+      <div class="ctrl-right">
+        <button class="view-btn active" id="btn-list" title="Lista" onclick="setView('list')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+            <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+          </svg>
+        </button>
+        <button class="view-btn" id="btn-grid" title="Grade" onclick="setView('grid')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="results-list" id="results-list">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p style="color:#999">Carregando ofertas…</p>
+      </div>
+    </div>
+
+    <div class="results-grid" id="results-grid"></div>
+
+    <!-- Pagination -->
+    <div class="pagination" id="pagination"></div>
+  </div>
+</div>
+
+<!-- MOBILE: Filtros button -->
+<button class="btn-filtros-mobile" onclick="openSidebar()">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+    <line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>
+  </svg>
+  Filtros
+</button>
+
+<!-- DATA -->
+<script src="data/ofertas.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ── CONFIG ────────────────────────────────────────── */
+  var PER_PAGE = 25;
+  var currentView = 'list';
+
+  /* ── STATE ─────────────────────────────────────────── */
+  var allData  = [];
+  var filtered = [];
+  var page     = 1;
+
+  /* ── BOOT ───────────────────────────────────────────── */
+  if (typeof window.CONECTA_DATA !== 'undefined' && window.CONECTA_DATA.length) {
+    allData = window.CONECTA_DATA;
+    boot();
+  } else {
+    document.getElementById('results-list').innerHTML =
+      '<div class="empty-state"><h3>Dados nao encontrados</h3>' +
+      '<p>Execute <code>python converter.py</code> e recarregue a pagina.</p></div>';
+  }
+
+  function boot() {
+    populateCounts();
+    populateLocationSelects();
+    updateGlobalStats();
+    applyAndRender();
+  }
+
+  /* ── COUNTS ─────────────────────────────────────────── */
+  function populateCounts() {
+    var cats = { iphone: 0, ipad: 0, macbook: 0, watch: 0 };
+    allData.forEach(function(o) { if (cats[o.categoria] !== undefined) cats[o.categoria]++; });
+    Object.keys(cats).forEach(function(k) {
+      var el = document.getElementById('cc-' + k);
+      if (el) el.textContent = cats[k].toLocaleString('pt-BR');
+    });
+  }
+
+  function updateGlobalStats() {
+    var sup = new Set(allData.map(function(o){ return o.fornecedor; }).filter(Boolean));
+    var cit = new Set(allData.map(function(o){ return o.cidade; }).filter(Boolean));
+    document.getElementById('hs-suppliers').textContent = sup.size;
+    document.getElementById('hs-total').textContent     = allData.length.toLocaleString('pt-BR');
+    document.getElementById('hs-cities').textContent    = cit.size;
+    document.getElementById('gb-total').textContent     = allData.length.toLocaleString('pt-BR');
+    document.getElementById('gb-suppliers').textContent = sup.size;
+  }
+
+  /* ── LOCATION DROPDOWNS ─────────────────────────────── */
+  function populateLocationSelects() {
+    var stateSet = new Set();
+    var citySet  = new Set();
+    allData.forEach(function(o) {
+      var c = o.cidade || '';
+      citySet.add(c);
+      var parts = c.split(',');
+      if (parts.length > 1) stateSet.add(parts[parts.length-1].trim());
+    });
+
+    var stateEl = document.getElementById('f-state');
+    Array.from(stateSet).sort().forEach(function(s) {
+      var opt = document.createElement('option'); opt.value = s; opt.textContent = s;
+      stateEl.appendChild(opt);
+    });
+
+    var cityEl = document.getElementById('f-city');
+    Array.from(citySet).sort().forEach(function(c) {
+      if (!c) return;
+      var opt = document.createElement('option'); opt.value = c; opt.textContent = c;
+      cityEl.appendChild(opt);
+    });
+  }
+
+  /* ── FILTERS ────────────────────────────────────────── */
+  window.applyAndRender = function() {
+    page = 1;
+    filtered = compute();
+    render();
+  };
+
+  function compute() {
+    var data = allData.slice();
+
+    /* categoria checkboxes */
+    var checkedCats = Array.from(
+      document.querySelectorAll('.check-input:checked')
+    ).map(function(el){ return el.dataset.cat; });
+
+    if (checkedCats.length > 0) {
+      data = data.filter(function(o){ return checkedCats.indexOf(o.categoria) >= 0; });
+    }
+
+    /* localização text */
+    var loc = (document.getElementById('f-location').value || '').toLowerCase().trim();
+    if (loc) {
+      data = data.filter(function(o){
+        return (o.cidade || '').toLowerCase().includes(loc);
+      });
+    }
+
+    /* estado dropdown */
+    var state = document.getElementById('f-state').value;
+    if (state) {
+      data = data.filter(function(o){ return (o.cidade || '').endsWith(state); });
+    }
+
+    /* cidade dropdown */
+    var city = document.getElementById('f-city').value;
+    if (city) {
+      data = data.filter(function(o){ return o.cidade === city; });
+    }
+
+    /* preço */
+    var pmin = parseFloat(document.getElementById('f-pmin-inp').value) || 0;
+    var pmax = parseFloat(document.getElementById('f-pmax-inp').value) ||
+               parseFloat(document.getElementById('f-pmax').value) || 999999;
+    data = data.filter(function(o){
+      var v = o.valor_num || 0;
+      return v >= pmin && v <= pmax;
+    });
+
+    /* condição */
+    var cond = document.querySelector('input[name="cond"]:checked');
+    if (cond && cond.value) {
+      data = data.filter(function(o){ return o.condicao === cond.value; });
+    }
+
+    /* busca texto */
+    var q = (document.getElementById('inp-search').value || '').toLowerCase().trim();
+    if (q) {
+      data = data.filter(function(o){
+        return (o.modelo||'').toLowerCase().includes(q) ||
+               (o.fornecedor||'').toLowerCase().includes(q) ||
+               (o.cidade||'').toLowerCase().includes(q) ||
+               (o.cor||'').toLowerCase().includes(q);
+      });
+    }
+
+    /* ordenação */
+    var sort = document.getElementById('sel-sort').value;
+    if (sort === 'preco-asc')  data.sort(function(a,b){ return (a.valor_num||999999)-(b.valor_num||999999); });
+    if (sort === 'preco-desc') data.sort(function(a,b){ return (b.valor_num||0)-(a.valor_num||0); });
+    if (sort === 'az')         data.sort(function(a,b){ return (a.modelo||'').localeCompare(b.modelo||'','pt'); });
+
+    return data;
+  }
+
+  window.clearFilters = function() {
+    document.getElementById('f-location').value = '';
+    document.getElementById('inp-search').value = '';
+    document.getElementById('f-state').value = '';
+    document.getElementById('f-city').value = '';
+    document.getElementById('f-pmin-inp').value = '';
+    document.getElementById('f-pmax-inp').value = '';
+    document.getElementById('f-pmax').value = 50000;
+    document.getElementById('pmax-disp').textContent = '50.000';
+    document.getElementById('pmin-disp').textContent = '0';
+    document.querySelectorAll('.check-input').forEach(function(el){ el.checked = true; });
+    document.querySelector('input[name="cond"][value=""]').checked = true;
+    applyAndRender();
+  };
+
+  /* ── PRICE RANGE ────────────────────────────────────── */
+  window.onPriceRange = function() {
+    var v = document.getElementById('f-pmax').value;
+    document.getElementById('pmax-disp').textContent = Number(v).toLocaleString('pt-BR');
+    document.getElementById('f-pmax-inp').value = v;
+    applyAndRender();
+  };
+
+  /* ── PER PAGE ───────────────────────────────────────── */
+  window.onPerPageChange = function() {
+    PER_PAGE = parseInt(document.getElementById('sel-perpage').value);
+    page = 1;
+    render();
+  };
+
+  /* ── VIEW TOGGLE ────────────────────────────────────── */
+  window.setView = function(v) {
+    currentView = v;
+    document.getElementById('btn-list').classList.toggle('active', v === 'list');
+    document.getElementById('btn-grid').classList.toggle('active', v === 'grid');
+    document.getElementById('results-list').classList.toggle('hidden', v !== 'list');
+    document.getElementById('results-grid').classList.toggle('active', v === 'grid');
+    render();
+  };
+
+  /* ── PAGINATION ─────────────────────────────────────── */
+  window.gotoPage = function(p) {
+    page = p;
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  /* ── RENDER ─────────────────────────────────────────── */
+  function render() {
+    var total = filtered.length;
+    var pages = Math.ceil(total / PER_PAGE);
+    if (page > pages) page = Math.max(1, pages);
+    var slice = filtered.slice((page-1)*PER_PAGE, page*PER_PAGE);
+
+    /* subtitle */
+    document.getElementById('results-sub').innerHTML =
+      '<strong>' + total.toLocaleString('pt-BR') + '</strong> produto' + (total!==1?'s':'') + ' encontrado' + (total!==1?'s':'');
+
+    /* green bar */
+    document.getElementById('gb-total').textContent = total.toLocaleString('pt-BR');
+
+    /* items */
+    if (currentView === 'list') {
+      var listEl = document.getElementById('results-list');
+      listEl.innerHTML = slice.length ? slice.map(renderListItem).join('') :
+        '<div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ddd" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><h3>Nenhuma oferta encontrada</h3><p>Tente ajustar os filtros.</p></div>';
+    } else {
+      var gridEl = document.getElementById('results-grid');
+      gridEl.innerHTML = slice.length ? slice.map(renderGridCard).join('') :
+        '<div class="empty-state"><h3>Nenhuma oferta encontrada</h3><p>Tente ajustar os filtros.</p></div>';
+    }
+
+    renderPagination(total, pages);
+  }
+
+  /* ── LIST ITEM ──────────────────────────────────────── */
+  function splitModel(m) {
+    var match = (m||'').match(/^(.*?)\s+(\d+\s*(?:GB|TB))$/i);
+    return match ? { name: match[1].trim(), cap: match[2].trim().toUpperCase() } : { name: m||'—', cap: null };
+  }
+
+  function categoryIcon(cat) {
+    var icons = { iphone:'📱', ipad:'📟', macbook:'💻', watch:'⌚' };
+    return icons[cat] || '📦';
+  }
+
+  function waButton(o, label) {
+    label = label || '<span>WhatsApp</span>';
+    if (o.whatsapp_url) {
+      return '<a href="'+o.whatsapp_url+'" target="_blank" rel="noopener" class="btn-wa">' + waIcon() + label + '</a>';
+    }
+    return '<button class="btn-wa no-contact" disabled>' + waIcon() + '<span>Sem contato</span></button>';
+  }
+
+  function renderListItem(o) {
+    var mc = splitModel(o.modelo);
+    var cond = (o.condicao||'').trim();
+    var chips = '';
+    if (mc.cap) chips += '<span class="chip-storage">' + esc(mc.cap) + '</span>';
+    if (cond)   chips += '<span class="chip-' + cond.toLowerCase() + '">' + esc(cond) + '</span>';
+    if (o.cor)  chips += '<span class="chip-cor">' + esc(o.cor) + '</span>';
+
+    return '<div class="list-item">' +
+      '<div class="item-icon">' + categoryIcon(o.categoria) + '</div>' +
+      '<div class="item-main">' +
+        '<div class="item-name">' + esc(mc.name) + '</div>' +
+        '<div class="item-chips">' + chips + '</div>' +
+      '</div>' +
+      '<div class="item-supplier">' +
+        '<div class="supplier-name">' + esc(o.fornecedor||'—') + '</div>' +
+        '<div class="supplier-city">' + esc(o.cidade||'') + '</div>' +
+        (o.data_atualizacao ? '<div class="supplier-date">Atualizado '+esc(o.data_atualizacao)+'</div>' : '') +
+      '</div>' +
+      '<div class="item-price-wrap">' +
+        '<div class="item-price">' + esc(o.valor||'—') + '</div>' +
+      '</div>' +
+      '<div class="item-action">' + waButton(o) + '</div>' +
+    '</div>';
+  }
+
+  function renderGridCard(o) {
+    var mc = splitModel(o.modelo);
+    var cond = (o.condicao||'').trim();
+    return '<div class="grid-card">' +
+      '<div class="grid-card-body">' +
+        '<div class="item-chips" style="margin-bottom:8px">' +
+          (mc.cap ? '<span class="chip-storage">'+esc(mc.cap)+'</span>' : '') +
+          (cond ? '<span class="chip-'+cond.toLowerCase()+'">'+esc(cond)+'</span>' : '') +
+        '</div>' +
+        '<div class="gc-name">' + esc(mc.name) + '</div>' +
+        '<div class="gc-price">' + esc(o.valor||'—') + '</div>' +
+        '<div class="gc-meta">' +
+          (o.fornecedor ? '<strong>' + esc(o.fornecedor) + '</strong><br>' : '') +
+          (o.cidade ? esc(o.cidade) : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="grid-card-footer">' + waButton(o) + '</div>' +
+    '</div>';
+  }
+
+  /* ── PAGINATION ─────────────────────────────────────── */
+  function renderPagination(total, pages) {
+    var el = document.getElementById('pagination');
+    if (pages <= 1) { el.innerHTML = ''; return; }
+
+    var html = '<button class="pg" ' + (page===1?'disabled':'onclick="gotoPage('+(page-1)+')"') + '>←</button>';
+    var range = buildRange(page, pages);
+    var prev = 0;
+    range.forEach(function(p) {
+      if (p - prev > 1) html += '<span class="pg-dots">…</span>';
+      html += '<button class="pg' + (p===page?' active':'') + '" onclick="gotoPage('+p+')">' + p + '</button>';
+      prev = p;
+    });
+    html += '<button class="pg" ' + (page===pages?'disabled':'onclick="gotoPage('+(page+1)+')"') + '>→</button>';
+    el.innerHTML = html;
+  }
+
+  function buildRange(cur, total) {
+    var out = [];
+    for (var i = 1; i <= total; i++) {
+      if (i===1||i===total||(i>=cur-2&&i<=cur+2)) out.push(i);
+    }
+    return out;
+  }
+
+  /* ── MOBILE SIDEBAR ─────────────────────────────────── */
+  window.openSidebar = function() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  };
+  window.closeSidebar = function() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  };
+
+  /* ── HELPERS ────────────────────────────────────────── */
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function waIcon() {
+    return '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>';
+  }
+
+})();
+</script>
+</body>
+</html>
