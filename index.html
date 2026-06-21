@@ -840,6 +840,38 @@
     return (r*299+g*587+b*114)/1000 > 165;
   }
 
+  /* ── ORDENAÇÃO DE MODELOS POR FAMÍLIA ───────────────────
+     Ordem: Air primeiro, depois por número decrescente,
+     dentro do mesmo número: e → Pro Max → Pro → Plus → base
+  ──────────────────────────────────────────────────────── */
+  function parseModelKey(name) {
+    var n = (name || '').toLowerCase();
+    // Produtos "Air" sem número (iPhone Air, iPad Air...)
+    if (/^iphone air/i.test(name)) return { num: 9999, varRank: 0 };
+    if (/^ipad air/i.test(name))   return { num: 9998, varRank: 0 };
+    if (/^macbook air/i.test(name))return { num: 9997, varRank: 0 };
+    // Extrai número principal (ex: 17, 16, 15...)
+    var numMatch = name.match(/(\d+)/);
+    var num = numMatch ? parseInt(numMatch[1]) : 0;
+    // Variante: define a sub-ordem dentro do mesmo número
+    var varRank;
+    if (/pro max/i.test(n))          varRank = 2;
+    else if (/pro/i.test(n))         varRank = 3;
+    else if (/plus/i.test(n))        varRank = 4;
+    else if (/\s+e$/i.test(name))    varRank = 1; // "17e", "16e"
+    else if (/mini/i.test(n))        varRank = 5;
+    else                             varRank = 6; // base (iPhone 17, iPhone 16...)
+    return { num: num, varRank: varRank };
+  }
+
+  function sortModelNames(names) {
+    return names.slice().sort(function(a, b) {
+      var pa = parseModelKey(a), pb = parseModelKey(b);
+      if (pa.num !== pb.num) return pb.num - pa.num; // número maior primeiro
+      return pa.varRank - pb.varRank;                // variante conforme hierarquia
+    });
+  }
+
   function populateDynamicFilters() {
     var cats = Array.from(document.querySelectorAll('.check-input:checked'))
       .map(function(el){ return el.dataset.cat; });
@@ -858,7 +890,7 @@
       }
     });
 
-    _modList = Object.keys(mc).sort(function(a,b){ return mc[b]-mc[a]; });
+    _modList = sortModelNames(Object.keys(mc));
     _modCounts = mc;
     _corList = Object.keys(cc).sort(function(a,b){ return cc[b]-cc[a]; });
     _armList = Object.keys(ac).sort(function(a,b){
