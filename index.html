@@ -208,6 +208,60 @@
     }
     .radio-label { font-size: 13px; color: var(--gray-dark); }
 
+    /* ── FILTROS DINÂMICOS ───────────────────────────────── */
+    .filter-check-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 0; cursor: pointer; user-select: none;
+    }
+    .filter-check-item:hover .fcheck-label { color: var(--green); }
+    .fcheck-input {
+      width: 15px; height: 15px; cursor: pointer;
+      accent-color: var(--green); flex-shrink: 0;
+    }
+    .fcheck-label { font-size: 13px; color: var(--gray-dark); flex: 1; }
+    .fcheck-count {
+      font-size: 10.5px; color: var(--gray-mid); font-weight: 500;
+      background: var(--gray-light); padding: 1px 6px; border-radius: 20px;
+    }
+    .ver-mais-btn {
+      display: flex; align-items: center; gap: 5px;
+      margin-top: 8px; padding: 3px 0;
+      background: none; border: none; cursor: pointer;
+      font-family: 'Poppins', sans-serif; font-size: 11.5px;
+      font-weight: 600; color: var(--green); transition: color .15s;
+    }
+    .ver-mais-btn:hover { color: var(--green-mid); }
+
+    /* ── CORES (swatches) ────────────────────────────────── */
+    .color-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 8px 4px;
+    }
+    .swatch-item {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      cursor: pointer; padding: 5px 3px; border-radius: 8px;
+      transition: background .15s; user-select: none;
+    }
+    .swatch-item:hover { background: var(--gray-light); }
+    .swatch-item.swatch-active { background: var(--green-bg); }
+    .swatch-circle {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 2px solid transparent;
+      box-shadow: 0 1px 3px rgba(0,0,0,.18);
+      transition: transform .15s, border-color .15s, box-shadow .15s;
+    }
+    .swatch-item:hover .swatch-circle { transform: scale(1.08); }
+    .swatch-item.swatch-active .swatch-circle {
+      border-color: var(--green); transform: scale(1.13);
+      box-shadow: 0 0 0 3px rgba(27,94,32,.15), 0 1px 3px rgba(0,0,0,.18);
+    }
+    .swatch-name {
+      font-size: 9px; color: var(--gray); text-align: center;
+      line-height: 1.2; max-width: 50px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .swatch-item.swatch-active .swatch-name { color: var(--green); font-weight: 600; }
+
     /* ── CONTENT ─────────────────────────────────────────── */
     .content { flex: 1; min-width: 0; padding: 20px 24px 48px; }
 
@@ -515,33 +569,53 @@
       <div id="cat-filters">
         <label class="check-item">
           <div class="check-left">
-            <input class="check-input" type="checkbox" data-cat="iphone" checked onchange="applyAndRender()">
+            <input class="check-input" type="checkbox" data-cat="iphone" checked onchange="onCatChg()">
             <span class="check-label">📱 iPhone</span>
           </div>
           <span class="check-count" id="cc-iphone">0</span>
         </label>
         <label class="check-item">
           <div class="check-left">
-            <input class="check-input" type="checkbox" data-cat="ipad" onchange="applyAndRender()">
+            <input class="check-input" type="checkbox" data-cat="ipad" onchange="onCatChg()">
             <span class="check-label">📟 iPad</span>
           </div>
           <span class="check-count" id="cc-ipad">0</span>
         </label>
         <label class="check-item">
           <div class="check-left">
-            <input class="check-input" type="checkbox" data-cat="macbook" onchange="applyAndRender()">
+            <input class="check-input" type="checkbox" data-cat="macbook" onchange="onCatChg()">
             <span class="check-label">💻 MacBook</span>
           </div>
           <span class="check-count" id="cc-macbook">0</span>
         </label>
         <label class="check-item">
           <div class="check-left">
-            <input class="check-input" type="checkbox" data-cat="watch" onchange="applyAndRender()">
+            <input class="check-input" type="checkbox" data-cat="watch" onchange="onCatChg()">
             <span class="check-label">⌚ Apple Watch</span>
           </div>
           <span class="check-count" id="cc-watch">0</span>
         </label>
       </div>
+    </div>
+
+    <!-- Modelo -->
+    <div class="filter-section" id="fs-modelo">
+      <div class="filter-label">Modelo</div>
+      <div id="modelo-list"></div>
+      <button class="ver-mais-btn" id="btn-ver-mais-modelo" style="display:none" onclick="toggleVerMais('modelo')"></button>
+    </div>
+
+    <!-- Cor -->
+    <div class="filter-section" id="fs-cor">
+      <div class="filter-label">Cor</div>
+      <div class="color-grid" id="cor-list"></div>
+    </div>
+
+    <!-- Armazenamento -->
+    <div class="filter-section" id="fs-arm">
+      <div class="filter-label">Armazenamento</div>
+      <div id="arm-list"></div>
+      <button class="ver-mais-btn" id="btn-ver-mais-arm" style="display:none" onclick="toggleVerMais('arm')"></button>
     </div>
 
     <!-- Faixa de Preço -->
@@ -665,6 +739,135 @@
   var filtered = [];
   var page     = 1;
 
+  /* ── FILTROS DINÂMICOS STATE ────────────────────────── */
+  var selModelos  = new Set();
+  var selCores    = new Set();
+  var selStorages = new Set();
+  var showAllMod  = false;
+  var showAllArm  = false;
+  var MAX_VIS     = 5;
+  var _modList = [], _modCounts = {};
+  var _corList = [];
+  var _armList = [], _armCounts = {};
+
+  var COLOR_MAP = {
+    'amarelo':'#F5C518','azul':'#3B82F6','azul escuro':'#1E40AF',
+    'azul meia-noite':'#1E3A5F','branco':'#FFFFFF','cinza':'#9CA3AF',
+    'cinza espacial':'#4B5563','dourado':'#D4AF37','estelar':'#F5F0E8',
+    'laranja':'#F97316','lilas':'#C4B5FD','natural':'#D4C5A9',
+    'prata':'#C0C0C0','preto':'#1F2937','rosa':'#F472B6',
+    'roxo':'#8B5CF6','titanio':'#71717A','verde':'#22C55E',
+    'verde-agua':'#06B6D4','vermelho':'#EF4444',
+  };
+
+  function normCor(c) {
+    return (c||'').toLowerCase().trim()
+      .normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ');
+  }
+  function swatchBg(cor) {
+    var n = normCor(cor);
+    for (var k in COLOR_MAP) { if (normCor(k)===n) return COLOR_MAP[k]; }
+    for (var k in COLOR_MAP) {
+      var kn = normCor(k);
+      if (n.startsWith(kn)||kn.startsWith(n)) return COLOR_MAP[k];
+    }
+    return '#CBD5E1';
+  }
+  function isLightHex(hex) {
+    if (!hex||hex.length<7) return false;
+    var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+    return (r*299+g*587+b*114)/1000 > 165;
+  }
+
+  function populateDynamicFilters() {
+    var cats = Array.from(document.querySelectorAll('.check-input:checked'))
+      .map(function(el){ return el.dataset.cat; });
+    var base = cats.length ? allData.filter(function(o){ return cats.indexOf(o.categoria)>=0; }) : allData;
+
+    var mc={}, cc={}, ac={};
+    base.forEach(function(o) {
+      var sp = splitModel(o.modelo);
+      var mn = sp.name;
+      if (mn && mn!=='—') mc[mn]=(mc[mn]||0)+1;
+      if (sp.cap) ac[sp.cap]=(ac[sp.cap]||0)+1;
+      var cor = (o.cor||'').trim();
+      if (cor) {
+        var t = cor.charAt(0).toUpperCase()+cor.slice(1).toLowerCase();
+        cc[t]=(cc[t]||0)+1;
+      }
+    });
+
+    _modList = Object.keys(mc).sort(function(a,b){ return mc[b]-mc[a]; });
+    _modCounts = mc;
+    _corList = Object.keys(cc).sort(function(a,b){ return cc[b]-cc[a]; });
+    _armList = Object.keys(ac).sort(function(a,b){
+      return (parseInt(a)*(a.indexOf('TB')>=0?1024:1))-(parseInt(b)*(b.indexOf('TB')>=0?1024:1));
+    });
+    _armCounts = ac;
+
+    renderModeloList(); renderCorList(); renderArmList();
+  }
+
+  function renderModeloList() {
+    var el=document.getElementById('modelo-list'), btn=document.getElementById('btn-ver-mais-modelo');
+    if (!el) return;
+    var vis = showAllMod ? _modList : _modList.slice(0,MAX_VIS);
+    el.innerHTML = vis.map(function(m){
+      var chk = selModelos.has(m)?' checked':'';
+      return '<label class="filter-check-item"><input class="fcheck-input" type="checkbox" data-modelo="'+esc(m)+'"'+chk+' onchange="onModeloChg(this)"><span class="fcheck-label">'+esc(m)+'</span><span class="fcheck-count">'+_modCounts[m]+'</span></label>';
+    }).join('');
+    var hidden = _modList.length - MAX_VIS;
+    if (hidden>0) {
+      btn.style.display='';
+      btn.innerHTML = showAllMod
+        ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>&nbsp;Ver menos'
+        : '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>&nbsp;Ver mais ('+hidden+')';
+    } else { btn.style.display='none'; }
+    document.getElementById('fs-modelo').style.display = _modList.length ? '' : 'none';
+  }
+
+  function renderCorList() {
+    var el=document.getElementById('cor-list');
+    if (!el) return;
+    el.innerHTML = _corList.map(function(cor){
+      var bg=swatchBg(cor), light=isLightHex(bg);
+      var borderStyle = light ? ';outline:1.5px solid #ddd;outline-offset:-1px' : '';
+      var active = selCores.has(cor)?' swatch-active':'';
+      return '<div class="swatch-item'+active+'" onclick="onCorClick(\''+esc(cor)+'\')">'+
+        '<div class="swatch-circle" style="background:'+bg+borderStyle+'"></div>'+
+        '<span class="swatch-name">'+esc(cor)+'</span>'+
+      '</div>';
+    }).join('');
+    document.getElementById('fs-cor').style.display = _corList.length ? '' : 'none';
+  }
+
+  function renderArmList() {
+    var el=document.getElementById('arm-list'), btn=document.getElementById('btn-ver-mais-arm');
+    if (!el) return;
+    var vis = showAllArm ? _armList : _armList.slice(0,MAX_VIS);
+    el.innerHTML = vis.map(function(arm){
+      var chk = selStorages.has(arm)?' checked':'';
+      return '<label class="filter-check-item"><input class="fcheck-input" type="checkbox" data-arm="'+esc(arm)+'"'+chk+' onchange="onArmChg(this)"><span class="fcheck-label">'+esc(arm)+'</span><span class="fcheck-count">'+_armCounts[arm]+'</span></label>';
+    }).join('');
+    var hidden = _armList.length - MAX_VIS;
+    if (hidden>0) {
+      btn.style.display='';
+      btn.innerHTML = showAllArm
+        ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>&nbsp;Ver menos'
+        : '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>&nbsp;Ver mais ('+hidden+')';
+    } else { btn.style.display='none'; }
+    document.getElementById('fs-arm').style.display = _armList.length ? '' : 'none';
+  }
+
+  window.onCatChg = function() { selModelos.clear(); showAllMod=false; populateDynamicFilters(); applyAndRender(); };
+  window.onModeloChg = function(el) { var m=el.dataset.modelo; if(el.checked) selModelos.add(m); else selModelos.delete(m); applyAndRender(); };
+  window.onCorClick = function(cor) { if(selCores.has(cor)) selCores.delete(cor); else selCores.add(cor); renderCorList(); applyAndRender(); };
+  window.onArmChg = function(el) { var a=el.dataset.arm; if(el.checked) selStorages.add(a); else selStorages.delete(a); applyAndRender(); };
+  window.toggleVerMais = function(type) {
+    if (type==='modelo') { showAllMod=!showAllMod; renderModeloList(); }
+    else if (type==='arm') { showAllArm=!showAllArm; renderArmList(); }
+  };
+
   /* ── BOOT — carrega dados do Supabase em chunks ─────── */
   async function loadAll() {
     var all = [], from = 0, CHUNK = 1000;
@@ -696,6 +899,7 @@
   function boot() {
     populateCounts();
     populateLocationSelects();
+    populateDynamicFilters();
     updateGlobalStats();
     applyAndRender();
   }
@@ -799,6 +1003,25 @@
       data = data.filter(function(o){ return o.condicao === cond.value; });
     }
 
+    /* modelo */
+    if (selModelos.size > 0) {
+      data = data.filter(function(o){ return selModelos.has(splitModel(o.modelo).name); });
+    }
+
+    /* cor */
+    if (selCores.size > 0) {
+      data = data.filter(function(o){
+        var c=(o.cor||'').trim();
+        var t=c.charAt(0).toUpperCase()+c.slice(1).toLowerCase();
+        return selCores.has(t);
+      });
+    }
+
+    /* armazenamento */
+    if (selStorages.size > 0) {
+      data = data.filter(function(o){ return selStorages.has(splitModel(o.modelo).cap); });
+    }
+
     /* busca texto */
     var q = (document.getElementById('inp-search').value || '').toLowerCase().trim();
     if (q) {
@@ -831,6 +1054,9 @@
     document.getElementById('pmin-disp').textContent = '0';
     document.querySelectorAll('.check-input').forEach(function(el){ el.checked = true; });
     document.querySelector('input[name="cond"][value=""]').checked = true;
+    selModelos.clear(); selCores.clear(); selStorages.clear();
+    showAllMod = false; showAllArm = false;
+    populateDynamicFilters();
     applyAndRender();
   };
 
