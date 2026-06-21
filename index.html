@@ -343,6 +343,45 @@
     }
     .view-btn:hover, .view-btn.active { border-color: var(--green); color: var(--green); background: var(--green-bg); }
 
+    /* ── FAVORITOS ───────────────────────────────────────── */
+    .ctrl-fav {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 12px; border-radius: 7px;
+      border: 1.5px solid var(--gray-border); background: var(--gray-lighter);
+      font-family: inherit; font-size: 12.5px; font-weight: 500;
+      color: var(--gray-dark); cursor: pointer; transition: all .15s;
+    }
+    .ctrl-fav .star { color: var(--gray-mid); transition: color .15s; }
+    .ctrl-fav:hover { border-color: #f59e0b; }
+    .ctrl-fav.active { border-color: #f59e0b; background: #fff7ed; color: #b45309; }
+    .ctrl-fav.active .star, .ctrl-fav:hover .star { color: #f59e0b; }
+    .ctrl-fav .fav-count {
+      font-size: 11px; background: rgba(0,0,0,.06); color: var(--gray-dark);
+      border-radius: 10px; padding: 1px 7px; font-weight: 600;
+    }
+    .ctrl-fav.active .fav-count { background: rgba(245,158,11,.18); color: #b45309; }
+
+    .btn-fav {
+      width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1.5px solid var(--gray-border); background: #fff;
+      cursor: pointer; color: var(--gray-mid); font-size: 17px; line-height: 1;
+      transition: all .15s;
+    }
+    .btn-fav:hover { border-color: #f59e0b; color: #f59e0b; }
+    .btn-fav.active { color: #f59e0b; border-color: #f59e0b; background: #fff7ed; }
+
+    .gc-fav {
+      position: absolute; top: 10px; left: 10px; z-index: 2;
+      width: 30px; height: 30px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,.92); border: none; cursor: pointer;
+      color: var(--gray-mid); font-size: 15px; line-height: 1;
+      box-shadow: 0 1px 4px rgba(0,0,0,.12); transition: color .15s, transform .15s;
+    }
+    .gc-fav:hover { transform: scale(1.1); color: #f59e0b; }
+    .gc-fav.active { color: #f59e0b; }
+
     /* ── ACTIVE FILTER CHIPS ─────────────────────────────── */
     .active-filters {
       display: none; align-items: center; gap: 8px; flex-wrap: wrap;
@@ -451,7 +490,7 @@
     }
     .item-price-updated { font-size: 10.5px; color: var(--gray-mid); margin-top: 3px; }
 
-    .item-action { flex-shrink: 0; }
+    .item-action { flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
     .btn-wa {
       display: inline-flex; align-items: center; gap: 7px;
       padding: 9px 18px; border-radius: 10px;
@@ -898,7 +937,7 @@
       <svg class="ic-search" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
       </svg>
-      <input id="inp-search" type="text" placeholder="Buscar modelo, fornecedor, cidade…" autocomplete="off" oninput="onSearchInput()">
+      <input id="inp-search" type="text" placeholder="Buscar modelo, fornecedor, cidade…" aria-label="Buscar modelo, fornecedor ou cidade" autocomplete="off" oninput="onSearchInput()">
     </div>
 
     <!-- AUTH AREA -->
@@ -946,8 +985,8 @@
 
 <!-- MODAL AUTH -->
 <div class="modal-overlay" id="modal-auth-overlay" onclick="closeAuthModal()"></div>
-<div class="modal-box" id="modal-auth">
-  <button class="modal-close" onclick="closeAuthModal()">✕</button>
+<div class="modal-box" id="modal-auth" role="dialog" aria-modal="true" aria-label="Entrar ou criar conta">
+  <button class="modal-close" onclick="closeAuthModal()" aria-label="Fechar">✕</button>
   <div class="modal-tabs">
     <button class="modal-tab active" id="tab-login" onclick="switchTab('login')">Entrar</button>
     <button class="modal-tab" id="tab-register" onclick="switchTab('register')">Criar conta</button>
@@ -983,8 +1022,8 @@
 
 <!-- MODAL UPGRADE -->
 <div class="modal-overlay" id="modal-upgrade-overlay" onclick="closeUpgradeModal()"></div>
-<div class="modal-box modal-upgrade" id="modal-upgrade">
-  <button class="modal-close" onclick="closeUpgradeModal()">✕</button>
+<div class="modal-box modal-upgrade" id="modal-upgrade" role="dialog" aria-modal="true" aria-label="Assinar Conecta Lojista">
+  <button class="modal-close" onclick="closeUpgradeModal()" aria-label="Fechar">✕</button>
   <div class="upgrade-icon">🔒</div>
   <h2 class="upgrade-title">Acesso completo aos fornecedores</h2>
   <p class="upgrade-sub">Assine o Conecta Lojista e veja nome, contato e WhatsApp direto de todos os fornecedores.</p>
@@ -1027,7 +1066,7 @@
     <!-- Localização -->
     <div class="filter-section">
       <div class="filter-label">Localização</div>
-      <input class="loc-input" id="f-location" type="text" placeholder="Buscar cidade ou estado…" oninput="onSearchInput()">
+      <input class="loc-input" id="f-location" type="text" placeholder="Buscar cidade ou estado…" aria-label="Filtrar por cidade ou estado" oninput="onSearchInput()">
     </div>
 
     <!-- Categoria -->
@@ -1093,11 +1132,11 @@
           <span>R$ <span id="pmin-disp">0</span></span>
           <span>R$ <span id="pmax-disp">50.000</span></span>
         </div>
-        <input class="range-slider" type="range" id="f-pmin" min="0" max="50000" step="100" value="0" oninput="onPriceRangeMin()">
-        <input class="range-slider" type="range" id="f-pmax" min="0" max="50000" step="100" value="50000" oninput="onPriceRange()">
+        <input class="range-slider" type="range" id="f-pmin" min="0" max="50000" step="100" value="0" aria-label="Preço mínimo" oninput="onPriceRangeMin()">
+        <input class="range-slider" type="range" id="f-pmax" min="0" max="50000" step="100" value="50000" aria-label="Preço máximo" oninput="onPriceRange()">
         <div class="price-inputs">
-          <input class="price-input" id="f-pmin-inp" type="number" placeholder="Mín" min="0" oninput="applyAndRender()">
-          <input class="price-input" id="f-pmax-inp" type="number" placeholder="Máx" max="50000" oninput="applyAndRender()">
+          <input class="price-input" id="f-pmin-inp" type="number" placeholder="Mín" min="0" aria-label="Preço mínimo (R$)" oninput="applyAndRender()">
+          <input class="price-input" id="f-pmax-inp" type="number" placeholder="Máx" max="50000" aria-label="Preço máximo (R$)" oninput="applyAndRender()">
         </div>
       </div>
     </div>
@@ -1142,32 +1181,35 @@
 
     <!-- Controls bar -->
     <div class="controls-bar">
-      <select class="ctrl-select" id="f-state" onchange="onStateChange()">
+      <select class="ctrl-select" id="f-state" aria-label="Filtrar por estado" onchange="onStateChange()">
         <option value="">Todos os estados</option>
       </select>
-      <select class="ctrl-select" id="f-city" onchange="applyAndRender()">
+      <select class="ctrl-select" id="f-city" aria-label="Filtrar por cidade" onchange="applyAndRender()">
         <option value="">Todas as cidades</option>
       </select>
-      <select class="ctrl-select" id="sel-perpage" onchange="onPerPageChange()">
+      <select class="ctrl-select" id="sel-perpage" aria-label="Itens por página" onchange="onPerPageChange()">
         <option value="25">25 por página</option>
         <option value="50">50 por página</option>
         <option value="100">100 por página</option>
         <option value="10">10 por página</option>
       </select>
-      <select class="ctrl-select" id="sel-sort" onchange="applyAndRender()">
+      <select class="ctrl-select" id="sel-sort" aria-label="Ordenar resultados" onchange="applyAndRender()">
         <option value="preco-asc">Menor preço</option>
         <option value="preco-desc">Maior preço</option>
         <option value="recent">Mais recentes</option>
         <option value="az">A → Z</option>
       </select>
+      <button class="ctrl-fav" id="btn-fav-filter" aria-pressed="false" onclick="toggleFavOnly()">
+        <span class="star">★</span> Favoritos <span class="fav-count" id="fav-count">0</span>
+      </button>
       <div class="ctrl-right">
-        <button class="view-btn active" id="btn-list" title="Lista" onclick="setView('list')">
+        <button class="view-btn active" id="btn-list" title="Lista" aria-label="Ver em lista" onclick="setView('list')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
             <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
           </svg>
         </button>
-        <button class="view-btn" id="btn-grid" title="Grade" onclick="setView('grid')">
+        <button class="view-btn" id="btn-grid" title="Grade" aria-label="Ver em grade" onclick="setView('grid')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
             <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
@@ -1276,14 +1318,18 @@
   }
 
   /* ── AUTH MODAL ──────────────────────────────────────── */
+  var _lastFocus = null;
   function openAuthModal(tab) {
+    _lastFocus = document.activeElement;
     document.getElementById('modal-auth-overlay').classList.add('open');
     document.getElementById('modal-auth').classList.add('open');
     switchTab(tab || 'login');
+    setTimeout(function(){ window._focusModal('modal-auth'); }, 30);
   }
   function closeAuthModal() {
     document.getElementById('modal-auth-overlay').classList.remove('open');
     document.getElementById('modal-auth').classList.remove('open');
+    if (_lastFocus && _lastFocus.focus) { _lastFocus.focus(); _lastFocus = null; }
   }
   function switchTab(tab) {
     document.getElementById('auth-login').style.display    = tab==='login'    ? '' : 'none';
@@ -1356,13 +1402,16 @@
       '<div class="us-item"><span class="us-num">Hoje</span><span class="us-lbl">Atualizado</span></div>';
   }
   function openUpgradeModal() {
+    _lastFocus = document.activeElement;
     fillUpgradeSocial();
     document.getElementById('modal-upgrade-overlay').classList.add('open');
     document.getElementById('modal-upgrade').classList.add('open');
+    setTimeout(function(){ window._focusModal('modal-upgrade'); }, 30);
   }
   function closeUpgradeModal() {
     document.getElementById('modal-upgrade-overlay').classList.remove('open');
     document.getElementById('modal-upgrade').classList.remove('open');
+    if (_lastFocus && _lastFocus.focus) { _lastFocus.focus(); _lastFocus = null; }
   }
   function goToCheckout() {
     if (STRIPE_CHECKOUT_URL) {
@@ -1385,6 +1434,41 @@
   var allData  = [];
   var filtered = [];
   var page     = 1;
+
+  /* ── FAVORITOS (persistidos em localStorage) ────────── */
+  var FAV_KEY = 'cl_favs_v1';
+  var favs = new Set();
+  try {
+    var _rawFav = localStorage.getItem(FAV_KEY);
+    if (_rawFav) JSON.parse(_rawFav).forEach(function(id){ favs.add(String(id)); });
+  } catch (e) { /* ignora */ }
+  var favOnly = false;
+  function saveFavs() {
+    try { localStorage.setItem(FAV_KEY, JSON.stringify(Array.from(favs))); } catch (e) {}
+  }
+  function isFav(o) { return favs.has(String(o.id)); }
+  function updateFavCount() {
+    var el = document.getElementById('fav-count');
+    if (el) el.textContent = favs.size;
+  }
+  window.toggleFav = function(id, btn) {
+    id = String(id);
+    if (favs.has(id)) favs.delete(id); else favs.add(id);
+    saveFavs();
+    var active = favs.has(id);
+    if (btn) {
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    }
+    updateFavCount();
+    if (favOnly) applyAndRender();   // recomputa só quando o filtro de favoritos está ativo
+  };
+  window.toggleFavOnly = function() {
+    favOnly = !favOnly;
+    var b = document.getElementById('btn-fav-filter');
+    if (b) { b.classList.toggle('active', favOnly); b.setAttribute('aria-pressed', favOnly ? 'true' : 'false'); }
+    applyAndRender();
+  };
 
   /* ── FILTROS DINÂMICOS STATE ────────────────────────── */
   var selModelos  = new Set();
@@ -1754,6 +1838,7 @@
       if (selCores.size)    p.set('cor', Array.from(selCores).join(','));
       if (selStorages.size) p.set('arm', Array.from(selStorages).join(','));
       var sort = document.getElementById('sel-sort').value; if (sort && sort !== 'preco-asc') p.set('sort', sort);
+      if (favOnly) p.set('fav', '1');
       if (currentView === 'grid') p.set('view', 'grid');
       if (PER_PAGE !== 25) p.set('pp', String(PER_PAGE));
       if (page > 1) p.set('pg', String(page));
@@ -1815,11 +1900,21 @@
       document.getElementById('results-list').classList.add('hidden');
       document.getElementById('results-grid').classList.add('active');
     }
+    if (params.get('fav') === '1') {
+      favOnly = true;
+      var bf = document.getElementById('btn-fav-filter');
+      if (bf) { bf.classList.add('active'); bf.setAttribute('aria-pressed', 'true'); }
+    }
     if (params.has('pg')) _restorePage = parseInt(params.get('pg')) || 1;
   }
 
   function compute() {
     var data = allData.slice();
+
+    /* favoritos */
+    if (favOnly) {
+      data = data.filter(function(o){ return favs.has(String(o.id)); });
+    }
 
     /* categoria checkboxes */
     var checkedCats = Array.from(
@@ -1923,6 +2018,9 @@
     document.querySelector('input[name="cond"][value=""]').checked = true;
     selModelos.clear(); selCores.clear(); selStorages.clear();
     showAllMod = false; showAllArm = false;
+    favOnly = false;
+    var bf = document.getElementById('btn-fav-filter');
+    if (bf) { bf.classList.remove('active'); bf.setAttribute('aria-pressed', 'false'); }
     populateDynamicFilters();
     applyAndRender();
   };
@@ -2034,6 +2132,8 @@
     var cond = document.querySelector('input[name="cond"]:checked');
     if (cond && cond.value) chips.push(chip(cond.value, 'cond', ''));
 
+    if (favOnly) chips.push(chip('★ Só favoritos', 'fav', ''));
+
     if (chips.length === 0) { box.className = 'active-filters'; box.innerHTML = ''; return; }
     box.className = 'active-filters show';
     box.innerHTML = '<span class="af-label">Filtros ativos:</span>' + chips.join('') +
@@ -2060,6 +2160,11 @@
       case 'modelo':   selModelos.delete(value); renderModeloList(); break;
       case 'arm':      selStorages.delete(value); renderArmList(); break;
       case 'cor':      selCores.delete(value); renderCorList(); break;
+      case 'fav':
+        favOnly = false;
+        var bf = document.getElementById('btn-fav-filter');
+        if (bf) { bf.classList.remove('active'); bf.setAttribute('aria-pressed', 'false'); }
+        break;
     }
     applyAndRender();
   };
@@ -2078,9 +2183,15 @@
     /* green bar */
     document.getElementById('gb-total').textContent = total.toLocaleString('pt-BR');
     updateCategoryBadge();
+    updateFavCount();
 
     /* chips de filtros ativos */
     renderActiveFilters();
+
+    /* empty-state específico para "só favoritos" */
+    var emptyFav = (favOnly && favs.size === 0)
+      ? '<div class="empty-state"><div style="font-size:40px;margin-bottom:10px">★</div><h3>Nenhum favorito ainda</h3><p>Toque na estrela de uma oferta para salvá-la aqui.</p></div>'
+      : null;
 
     /* botão ver resultados — atualiza contagem em tempo real */
     var btnVer = document.getElementById('btn-ver-resultados');
@@ -2090,11 +2201,11 @@
     if (currentView === 'list') {
       var listEl = document.getElementById('results-list');
       listEl.innerHTML = slice.length ? slice.map(renderListItem).join('') :
-        '<div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ddd" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><h3>Nenhuma oferta encontrada</h3><p>Tente ajustar os filtros.</p></div>';
+        (emptyFav || '<div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ddd" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><h3>Nenhuma oferta encontrada</h3><p>Tente ajustar os filtros.</p></div>');
     } else {
       var gridEl = document.getElementById('results-grid');
       gridEl.innerHTML = slice.length ? slice.map(renderGridCard).join('') :
-        '<div class="empty-state"><h3>Nenhuma oferta encontrada</h3><p>Tente ajustar os filtros.</p></div>';
+        (emptyFav || '<div class="empty-state"><h3>Nenhuma oferta encontrada</h3><p>Tente ajustar os filtros.</p></div>');
     }
 
     renderPagination(total, pages);
@@ -2147,6 +2258,17 @@
     return '<button class="btn-wa no-contact" disabled>' + waIcon() + (compact ? '' : '<span>Sem contato</span>') + '</button>';
   }
 
+  function favBtn(o) {
+    var active = isFav(o) ? ' active' : '';
+    return '<button class="btn-fav' + active + '" aria-label="Favoritar oferta" aria-pressed="' +
+      (isFav(o) ? 'true' : 'false') + '" onclick="toggleFav(\'' + esc(String(o.id)) + '\',this)">★</button>';
+  }
+  function favBtnGrid(o) {
+    var active = isFav(o) ? ' active' : '';
+    return '<button class="gc-fav' + active + '" aria-label="Favoritar oferta" aria-pressed="' +
+      (isFav(o) ? 'true' : 'false') + '" onclick="toggleFav(\'' + esc(String(o.id)) + '\',this)">★</button>';
+  }
+
   function supplierName(o) {
     if (!authState.isSubscriber) return '<span class="supplier-masked">••••••••</span>';
     return esc(o.fornecedor||'—');
@@ -2189,7 +2311,7 @@
       '<div class="item-price-wrap">' +
         '<div class="item-price">' + esc(o.valor||'—') + '</div>' +
       '</div>' +
-      '<div class="item-action">' + waButton(o, false) + '</div>' +
+      '<div class="item-action">' + favBtn(o) + waButton(o, false) + '</div>' +
     '</div>';
   }
 
@@ -2201,6 +2323,7 @@
     return '<div class="grid-card">' +
       '<div class="gc-hero cat-' + (o.categoria||'') + '">' +
         heroHtml +
+        favBtnGrid(o) +
         (cond ? '<span class="gc-cond-badge ' + cls + '">' + esc(cond) + '</span>' : '') +
       '</div>' +
       '<div class="gc-body">' +
@@ -2258,6 +2381,76 @@
     document.getElementById('sidebar-overlay').classList.remove('open');
     document.body.style.overflow = '';
   };
+
+  /* ── ACESSIBILIDADE DOS MODAIS: ESC + foco preso (#22) ─ */
+  function getOpenModal() {
+    var a = document.getElementById('modal-auth');
+    if (a && a.classList.contains('open')) return a;
+    var u = document.getElementById('modal-upgrade');
+    if (u && u.classList.contains('open')) return u;
+    return null;
+  }
+  function focusableIn(m) {
+    var sel = 'a[href],button:not([disabled]),input:not([type=hidden]),select,textarea,[tabindex]:not([tabindex="-1"])';
+    return Array.prototype.filter.call(m.querySelectorAll(sel), function(el){
+      return el.offsetParent !== null;   // visível
+    });
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      if (getOpenModal()) { closeAuthModal(); closeUpgradeModal(); return; }
+      var sb = document.getElementById('sidebar');
+      if (sb && sb.classList.contains('open')) closeSidebar();
+      return;
+    }
+    if (e.key === 'Tab') {
+      var m = getOpenModal();
+      if (!m) return;
+      var f = focusableIn(m);
+      if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+  /* Move o foco para dentro do modal recém-aberto */
+  window._focusModal = function(id) {
+    var m = document.getElementById(id);
+    if (!m) return;
+    var f = focusableIn(m);
+    // pula o botão "fechar" (primeiro) quando houver um campo melhor
+    var target = f.find ? f.find(function(el){ return el.tagName === 'INPUT'; }) : null;
+    (target || f[0] || m).focus();
+  };
+
+  /* ── SWIPE PARA FECHAR O DRAWER NO MOBILE (#15) ──────── */
+  (function setupDrawerSwipe() {
+    var sb = document.getElementById('sidebar');
+    if (!sb) return;
+    var startY = 0, dy = 0, dragging = false;
+    function fromHandle(t) {
+      return t.closest && (t.closest('.sidebar-handle') || t.closest('.sidebar-header'));
+    }
+    sb.addEventListener('touchstart', function(e) {
+      if (!sb.classList.contains('open') || !fromHandle(e.target)) return;
+      startY = e.touches[0].clientY; dy = 0; dragging = true;
+      sb.style.transition = 'none';
+    }, { passive: true });
+    sb.addEventListener('touchmove', function(e) {
+      if (!dragging) return;
+      dy = e.touches[0].clientY - startY;
+      if (dy < 0) dy = 0;
+      sb.style.transform = 'translateY(' + dy + 'px)';
+    }, { passive: true });
+    sb.addEventListener('touchend', function() {
+      if (!dragging) return;
+      dragging = false;
+      sb.style.transition = '';
+      sb.style.transform = '';
+      if (dy > 90) closeSidebar();
+      dy = 0;
+    });
+  })();
 
   /* ── HELPERS ────────────────────────────────────────── */
   function esc(s) {
