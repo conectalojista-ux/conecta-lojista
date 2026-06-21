@@ -1304,6 +1304,8 @@
         authState.isSubscriber = false;
       }
       renderHeaderAuth();
+      // recarrega/limpa os contatos conforme o novo estado e re-renderiza
+      if (allData.length) { await loadContacts(); }
       render();
     });
   }
@@ -1392,8 +1394,9 @@
   function fillUpgradeSocial() {
     var box = document.getElementById('upgrade-social');
     if (!box || !allData.length) return;
-    var sup = new Set(allData.map(function(o){ return o.fornecedor; }).filter(Boolean)).size;
-    var total = allData.length;
+    var sup   = globalStats ? globalStats.fornecedores
+                            : new Set(allData.map(function(o){ return o.fornecedor; }).filter(Boolean)).size;
+    var total = globalStats ? globalStats.total : allData.length;
     box.innerHTML =
       '<div class="us-item"><span class="us-num">' + sup.toLocaleString('pt-BR') + '</span><span class="us-lbl">Fornecedores</span></div>' +
       '<div class="us-sep"></div>' +
@@ -1643,12 +1646,14 @@
     else if (type==='arm') { showAllArm=!showAllArm; renderArmList(); }
   };
 
-  /* ── BOOT — carrega dados do Supabase em chunks ─────── */
+  /* ── BOOT — carrega dados públicos do Supabase em chunks ─
+     Lê de ofertas_publicas (SEM fornecedor/telefone/whatsapp_url).
+     Os contatos vêm separados via RPC, só para assinante ativo. */
   async function loadAll() {
     var all = [], from = 0, CHUNK = 1000;
     while (true) {
       var res = await supabase
-        .from('ofertas')
+        .from('ofertas_publicas')
         .select('*')
         .order('valor_num', { ascending: true })
         .range(from, from + CHUNK - 1);
@@ -1660,9 +1665,43 @@
     return all;
   }
 
+  /* Estatísticas agregadas (contagens públicas, sem nomes) */
+  var globalStats = null;
+  async function loadStats() {
+    try {
+      var res = await supabase.rpc('ofertas_stats');
+      if (!res.error && res.data) globalStats = res.data;
+    } catch (e) { /* ignora — cai no fallback local */ }
+  }
+
+  /* Contatos (fornecedor/telefone/whatsapp_url) — só assinante ativo.
+     Mescla nos objetos de allData por id; limpa quando não-assinante. */
+  var _contacts = {};
+  async function loadContacts() {
+    _contacts = {};
+    if (authState.isSubscriber) {
+      try {
+        var res = await supabase.rpc('ofertas_contatos');
+        if (!res.error && Array.isArray(res.data)) {
+          res.data.forEach(function(c){ _contacts[String(c.id)] = c; });
+        }
+      } catch (e) { /* ignora */ }
+    }
+    applyContacts();
+  }
+  function applyContacts() {
+    allData.forEach(function(o) {
+      var c = _contacts[String(o.id)];
+      o.fornecedor   = c ? c.fornecedor   : null;
+      o.telefone     = c ? c.telefone     : null;
+      o.whatsapp_url = c ? c.whatsapp_url : null;
+    });
+  }
+
   /* Cache-first: usa localStorage se fresco (<6h), senão busca e grava.
-     Os dados do scraper só mudam 1x/dia, então o cache evita rebaixar tudo a cada visita. */
-  var CACHE_KEY = 'cl_ofertas_v1';
+     Guarda só os dados PÚBLICOS (contatos nunca são cacheados).
+     v2: invalida caches antigos que continham telefone. */
+  var CACHE_KEY = 'cl_ofertas_v2';
   var CACHE_TTL = 6 * 60 * 60 * 1000;
   async function loadAllCached() {
     try {
@@ -1695,7 +1734,8 @@
       return;
     }
     allData = data;
-    boot();
+    // contatos (se assinante) + estatísticas em paralelo, depois renderiza
+    Promise.all([ loadContacts(), loadStats() ]).then(boot);
   });
 
   var _restorePage = 1;
@@ -1721,13 +1761,18 @@
   }
 
   function updateGlobalStats() {
-    var sup = new Set(allData.map(function(o){ return o.fornecedor; }).filter(Boolean));
-    var cit = new Set(allData.map(function(o){ return o.cidade; }).filter(Boolean));
-    document.getElementById('hs-suppliers').textContent = sup.size;
-    document.getElementById('hs-total').textContent     = allData.length.toLocaleString('pt-BR');
-    document.getElementById('hs-cities').textContent    = cit.size;
-    document.getElementById('gb-total').textContent     = allData.length.toLocaleString('pt-BR');
-    document.getElementById('gb-suppliers').textContent = sup.size;
+    // fornecedores vem do RPC de stats (não-assinante não tem os nomes);
+    // total e cidades têm fallback local a partir dos dados públicos.
+    var total = globalStats ? globalStats.total : allData.length;
+    var sup   = globalStats ? globalStats.fornecedores
+                            : new Set(allData.map(function(o){ return o.fornecedor; }).filter(Boolean)).size;
+    var cit   = globalStats ? globalStats.cidades
+                            : new Set(allData.map(function(o){ return o.cidade; }).filter(Boolean)).size;
+    document.getElementById('hs-suppliers').textContent = (sup||0).toLocaleString('pt-BR');
+    document.getElementById('hs-total').textContent     = (total||0).toLocaleString('pt-BR');
+    document.getElementById('hs-cities').textContent    = (cit||0).toLocaleString('pt-BR');
+    document.getElementById('gb-total').textContent     = (total||0).toLocaleString('pt-BR');
+    document.getElementById('gb-suppliers').textContent = (sup||0).toLocaleString('pt-BR');
     updateFreshness();
   }
 
