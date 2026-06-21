@@ -874,6 +874,16 @@
     }
     .auth-field input:focus { border-color:var(--black); }
     .auth-error { font-size:12px; color:#ef4444; min-height:16px; margin-bottom:6px; }
+    .auth-consent {
+      display:flex; align-items:flex-start; gap:9px;
+      font-size:12px; color:var(--gray); line-height:1.45;
+      margin:2px 0 14px; cursor:pointer; user-select:none;
+    }
+    .auth-consent input {
+      width:16px; height:16px; margin-top:1px; flex-shrink:0;
+      accent-color:var(--green); cursor:pointer;
+    }
+    .auth-consent a { color:var(--black); font-weight:600; text-decoration:none; }
     .btn-auth-submit {
       width:100%; padding:13px; background:var(--black); color:#fff;
       border:none; border-radius:12px; font-size:15px; font-weight:600;
@@ -1008,6 +1018,10 @@
       <div class="auth-field"><label>E-mail</label><input type="email" id="reg-email" placeholder="seu@email.com"></div>
       <div class="auth-field"><label>WhatsApp (com DDD)</label><input type="tel" id="reg-phone" placeholder="(11) 99999-9999" inputmode="tel" autocomplete="tel"></div>
       <div class="auth-field"><label>Senha</label><input type="password" id="reg-pass" placeholder="mínimo 6 caracteres"></div>
+      <label class="auth-consent">
+        <input type="checkbox" id="reg-consent">
+        <span>Concordo em receber contato e novidades da Conecta Lojista por WhatsApp e e-mail, conforme a Política de Privacidade.</span>
+      </label>
       <div class="auth-error" id="reg-error"></div>
       <button class="btn-auth-submit" id="btn-register" onclick="doRegister()">Criar conta</button>
       <p class="auth-link">Já tem conta? <a href="#" onclick="switchTab('login');return false">Entrar</a></p>
@@ -1377,12 +1391,20 @@
     if (!email) { errEl.textContent = 'Informe um e-mail válido.'; return; }
     if (phone.length < 10 || phone.length > 13) { errEl.textContent = 'Informe um WhatsApp válido com DDD (ex: 11999998888).'; return; }
     if (pass.length < 6) { errEl.textContent = 'A senha precisa ter ao menos 6 caracteres.'; return; }
+    if (!document.getElementById('reg-consent').checked) {
+      errEl.textContent = 'É preciso aceitar o recebimento de contato para criar a conta.';
+      return;
+    }
     var btn = document.getElementById('btn-register');
     if (btn) { btn.disabled = true; btn.textContent = 'Criando…'; }
     var { error } = await supabase.auth.signUp({
       email: email,
       password: pass,
-      options: { data: { telefone: phone } }
+      options: { data: {
+        telefone: phone,
+        marketing_consent: true,
+        consent_at: new Date().toISOString()
+      } }
     });
     if (btn) { btn.disabled = false; btn.textContent = 'Criar conta'; }
     if (error) { errEl.textContent = error.message; return; }
