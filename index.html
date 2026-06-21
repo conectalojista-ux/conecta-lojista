@@ -544,6 +544,129 @@
       .item-price-updated { display: none; }
       .header-inner { gap: 12px; padding: 0 14px; }
     }
+
+    /* ── AUTH AREA (HEADER) ──────────────────────────────── */
+    .header-auth { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+    .btn-hdr-login {
+      background:none; border:1.5px solid var(--gray-border);
+      color:var(--black); border-radius:20px;
+      padding:6px 16px; font-size:13px; font-weight:500;
+      cursor:pointer; transition:border-color .2s,background .2s;
+    }
+    .btn-hdr-login:hover { border-color:var(--black); background:var(--gray-light); }
+    .btn-hdr-assine {
+      background:var(--black); color:#fff; border:none; border-radius:20px;
+      padding:7px 16px; font-size:13px; font-weight:600;
+      cursor:pointer; transition:opacity .2s;
+    }
+    .btn-hdr-assine:hover { opacity:.82; }
+    .hdr-user-email {
+      font-size:12px; color:var(--gray); max-width:160px;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    .btn-hdr-logout {
+      background:none; border:1.5px solid #e5e5ea;
+      color:var(--gray); border-radius:20px;
+      padding:5px 12px; font-size:12px; cursor:pointer;
+    }
+    .btn-hdr-logout:hover { border-color:#c7c7cc; color:var(--black); }
+
+    /* ── LOCK BUTTON ─────────────────────────────────────── */
+    .btn-lock {
+      display:inline-flex; align-items:center; gap:7px;
+      padding:9px 16px; border-radius:10px;
+      background:var(--gray-light); color:var(--gray);
+      border:1.5px dashed var(--gray-border);
+      font-size:13px; font-weight:600; cursor:pointer;
+      transition:background .2s,border-color .2s;
+    }
+    .btn-lock:hover { background:#eaeaec; border-color:#b0b0b8; }
+    .gc-footer .btn-lock { width:100%; justify-content:center; }
+    .supplier-masked { color:var(--gray); letter-spacing:.05em; }
+
+    /* ── MODAL BASE ──────────────────────────────────────── */
+    .modal-overlay {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,.45); z-index:900;
+      backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+    }
+    .modal-overlay.open { display:block; }
+    .modal-box {
+      display:none; position:fixed;
+      top:50%; left:50%; transform:translate(-50%,-52%);
+      width:min(440px,calc(100vw - 32px));
+      background:#fff; border-radius:20px;
+      padding:32px 28px 28px; z-index:901;
+      box-shadow:0 24px 60px rgba(0,0,0,.18);
+      animation:modal-in .28s cubic-bezier(.32,.72,0,1);
+    }
+    .modal-box.open { display:block; }
+    @keyframes modal-in {
+      from { transform:translate(-50%,-44%); opacity:0; }
+      to   { transform:translate(-50%,-50%); opacity:1; }
+    }
+    .modal-close {
+      position:absolute; top:14px; right:16px;
+      background:var(--gray-light); border:none; border-radius:50%;
+      width:28px; height:28px; font-size:13px;
+      color:var(--gray); cursor:pointer; line-height:28px; text-align:center;
+    }
+    .modal-close:hover { background:#e5e5ea; color:var(--black); }
+
+    /* ── AUTH MODAL ──────────────────────────────────────── */
+    .modal-tabs { display:flex; gap:0; margin-bottom:22px; border-bottom:1px solid var(--gray-border); }
+    .modal-tab {
+      flex:1; padding:10px 0; background:none; border:none;
+      font-size:14px; font-weight:500; color:var(--gray);
+      cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px;
+      transition:color .15s,border-color .15s;
+    }
+    .modal-tab.active { color:var(--black); border-bottom-color:var(--black); font-weight:600; }
+    .modal-sub { font-size:13px; color:var(--gray); margin:0 0 18px; }
+    .auth-field { display:flex; flex-direction:column; gap:5px; margin-bottom:14px; }
+    .auth-field label { font-size:12px; font-weight:600; color:var(--gray); text-transform:uppercase; letter-spacing:.04em; }
+    .auth-field input {
+      padding:11px 14px; border-radius:10px; font-size:14px;
+      border:1.5px solid var(--gray-border); outline:none;
+      transition:border-color .15s;
+    }
+    .auth-field input:focus { border-color:var(--black); }
+    .auth-error { font-size:12px; color:#ef4444; min-height:16px; margin-bottom:6px; }
+    .btn-auth-submit {
+      width:100%; padding:13px; background:var(--black); color:#fff;
+      border:none; border-radius:12px; font-size:15px; font-weight:600;
+      cursor:pointer; transition:opacity .2s; margin-top:4px;
+    }
+    .btn-auth-submit:hover { opacity:.82; }
+    .auth-link { font-size:12px; color:var(--gray); text-align:center; margin:14px 0 0; }
+    .auth-link a { color:var(--black); font-weight:600; text-decoration:none; }
+
+    /* ── UPGRADE MODAL ───────────────────────────────────── */
+    .modal-upgrade { text-align:center; }
+    .upgrade-icon { font-size:40px; margin-bottom:8px; }
+    .upgrade-title { font-size:20px; font-weight:700; color:var(--black); margin:0 0 8px; }
+    .upgrade-sub { font-size:13px; color:var(--gray); margin:0 0 20px; line-height:1.5; }
+    .upgrade-price { margin-bottom:20px; }
+    .price-val { font-size:36px; font-weight:800; color:var(--black); }
+    .price-period { font-size:16px; color:var(--gray); }
+    .upgrade-benefits {
+      list-style:none; padding:0; margin:0 0 24px;
+      text-align:left; display:inline-block;
+    }
+    .upgrade-benefits li { font-size:14px; color:var(--black); padding:5px 0; }
+    .btn-upgrade {
+      width:100%; padding:14px; background:var(--black); color:#fff;
+      border:none; border-radius:14px; font-size:16px; font-weight:700;
+      cursor:pointer; transition:opacity .2s;
+    }
+    .btn-upgrade:hover { opacity:.82; }
+    .upgrade-note { font-size:12px; color:var(--gray); margin:14px 0 0; }
+    .upgrade-note a { color:var(--black); font-weight:600; text-decoration:none; }
+
+    @media (max-width:600px) {
+      .btn-hdr-assine { display:none; }
+      .btn-hdr-login { padding:6px 12px; }
+    }
   </style>
 </head>
 <body>
@@ -565,6 +688,12 @@
         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
       </svg>
       <input id="inp-search" type="text" placeholder="Buscar modelo, fornecedor, cidade…" autocomplete="off">
+    </div>
+
+    <!-- AUTH AREA -->
+    <div class="header-auth" id="header-auth">
+      <button class="btn-hdr-login" onclick="openAuthModal('login')">Entrar</button>
+      <button class="btn-hdr-assine" onclick="openUpgradeModal()">Assinar — R$&nbsp;100/mês</button>
     </div>
 
     <div class="header-stats">
@@ -602,6 +731,56 @@
     <div class="gbar-item">Atualizado hoje</div>
     <div class="gbar-category" id="gb-cat">iPhone</div>
   </div>
+</div>
+
+<!-- MODAL AUTH -->
+<div class="modal-overlay" id="modal-auth-overlay" onclick="closeAuthModal()"></div>
+<div class="modal-box" id="modal-auth">
+  <button class="modal-close" onclick="closeAuthModal()">✕</button>
+  <div class="modal-tabs">
+    <button class="modal-tab active" id="tab-login" onclick="switchTab('login')">Entrar</button>
+    <button class="modal-tab" id="tab-register" onclick="switchTab('register')">Criar conta</button>
+  </div>
+
+  <div id="auth-login">
+    <p class="modal-sub">Acesse sua conta Conecta Lojista</p>
+    <div class="auth-field"><label>E-mail</label><input type="email" id="login-email" placeholder="seu@email.com"></div>
+    <div class="auth-field"><label>Senha</label><input type="password" id="login-pass" placeholder="••••••••"></div>
+    <div class="auth-error" id="login-error"></div>
+    <button class="btn-auth-submit" onclick="doLogin()">Entrar</button>
+    <p class="auth-link">Não tem conta? <a href="#" onclick="switchTab('register');return false">Criar conta</a></p>
+  </div>
+
+  <div id="auth-register" style="display:none">
+    <p class="modal-sub">Crie sua conta — assine depois para ter acesso completo</p>
+    <div class="auth-field"><label>E-mail</label><input type="email" id="reg-email" placeholder="seu@email.com"></div>
+    <div class="auth-field"><label>Senha</label><input type="password" id="reg-pass" placeholder="mínimo 6 caracteres"></div>
+    <div class="auth-error" id="reg-error"></div>
+    <button class="btn-auth-submit" onclick="doRegister()">Criar conta</button>
+    <p class="auth-link">Já tem conta? <a href="#" onclick="switchTab('login');return false">Entrar</a></p>
+  </div>
+</div>
+
+<!-- MODAL UPGRADE -->
+<div class="modal-overlay" id="modal-upgrade-overlay" onclick="closeUpgradeModal()"></div>
+<div class="modal-box modal-upgrade" id="modal-upgrade">
+  <button class="modal-close" onclick="closeUpgradeModal()">✕</button>
+  <div class="upgrade-icon">🔒</div>
+  <h2 class="upgrade-title">Acesso completo aos fornecedores</h2>
+  <p class="upgrade-sub">Assine o Conecta Lojista e veja nome, contato e WhatsApp direto de todos os fornecedores.</p>
+  <div class="upgrade-price">
+    <span class="price-val">R$ 100</span>
+    <span class="price-period">/mês</span>
+  </div>
+  <ul class="upgrade-benefits">
+    <li>✓ Nome completo de todos os fornecedores</li>
+    <li>✓ Contato direto via WhatsApp com 1 clique</li>
+    <li>✓ Acesso a todas as categorias (iPhone, iPad, MacBook, Watch)</li>
+    <li>✓ Atualização diária de ofertas</li>
+    <li>✓ Cancele quando quiser</li>
+  </ul>
+  <button class="btn-upgrade" onclick="goToCheckout()">Assinar agora</button>
+  <p class="upgrade-note">Já é assinante? <a href="#" onclick="closeUpgradeModal();openAuthModal('login');return false">Entrar na sua conta</a></p>
 </div>
 
 <!-- MAIN BODY -->
@@ -791,6 +970,114 @@
   var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlc2ZkdHhidnVxYXp2c3JtaHdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5OTE2NDQsImV4cCI6MjA5NzU2NzY0NH0.1O6oPuah6r2j7XGdWrZNyU5JYIVBjA-UwAT9UrF8hy0';
   var supabase = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
+  /* ── AUTH STATE ─────────────────────────────────────── */
+  var authState = { user: null, isSubscriber: false };
+
+  // URL do checkout Stripe (preencher depois de criar o produto)
+  var STRIPE_CHECKOUT_URL = '';
+
+  function renderHeaderAuth() {
+    var el = document.getElementById('header-auth');
+    if (!el) return;
+    if (authState.user) {
+      el.innerHTML =
+        '<span class="hdr-user-email">' + esc(authState.user.email) + '</span>' +
+        '<button class="btn-hdr-logout" onclick="doLogout()">Sair</button>';
+    } else {
+      el.innerHTML =
+        '<button class="btn-hdr-login" onclick="openAuthModal(\'login\')">Entrar</button>' +
+        '<button class="btn-hdr-assine" onclick="openUpgradeModal()">Assinar — R$ 100/mês</button>';
+    }
+  }
+
+  async function checkSubscription(userId) {
+    var res = await supabase.from('subscribers').select('status,subscription_end').eq('id', userId).single();
+    if (!res.data) return false;
+    var active = res.data.status === 'active';
+    var notExpired = !res.data.subscription_end || new Date(res.data.subscription_end) > new Date();
+    return active && notExpired;
+  }
+
+  async function initAuth() {
+    var { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      authState.user = session.user;
+      authState.isSubscriber = await checkSubscription(session.user.id);
+    }
+    renderHeaderAuth();
+
+    supabase.auth.onAuthStateChange(async function(_event, session) {
+      if (session) {
+        authState.user = session.user;
+        authState.isSubscriber = await checkSubscription(session.user.id);
+      } else {
+        authState.user = null;
+        authState.isSubscriber = false;
+      }
+      renderHeaderAuth();
+      applyFilters(); // re-renderiza cards com novo estado
+    });
+  }
+
+  /* ── AUTH MODAL ──────────────────────────────────────── */
+  function openAuthModal(tab) {
+    document.getElementById('modal-auth-overlay').classList.add('open');
+    document.getElementById('modal-auth').classList.add('open');
+    switchTab(tab || 'login');
+  }
+  function closeAuthModal() {
+    document.getElementById('modal-auth-overlay').classList.remove('open');
+    document.getElementById('modal-auth').classList.remove('open');
+  }
+  function switchTab(tab) {
+    document.getElementById('auth-login').style.display    = tab==='login'    ? '' : 'none';
+    document.getElementById('auth-register').style.display = tab==='register' ? '' : 'none';
+    document.getElementById('tab-login').classList.toggle('active',    tab==='login');
+    document.getElementById('tab-register').classList.toggle('active', tab==='register');
+  }
+
+  async function doLogin() {
+    var email = document.getElementById('login-email').value.trim();
+    var pass  = document.getElementById('login-pass').value;
+    var errEl = document.getElementById('login-error');
+    errEl.textContent = '';
+    var { error } = await supabase.auth.signInWithPassword({ email: email, password: pass });
+    if (error) { errEl.textContent = error.message; return; }
+    closeAuthModal();
+  }
+
+  async function doRegister() {
+    var email = document.getElementById('reg-email').value.trim();
+    var pass  = document.getElementById('reg-pass').value;
+    var errEl = document.getElementById('reg-error');
+    errEl.textContent = '';
+    var { error } = await supabase.auth.signUp({ email: email, password: pass });
+    if (error) { errEl.textContent = error.message; return; }
+    errEl.style.color = '#22c55e';
+    errEl.textContent = 'Conta criada! Verifique seu e-mail para confirmar.';
+  }
+
+  async function doLogout() {
+    await supabase.auth.signOut();
+  }
+
+  /* ── UPGRADE MODAL ───────────────────────────────────── */
+  function openUpgradeModal() {
+    document.getElementById('modal-upgrade-overlay').classList.add('open');
+    document.getElementById('modal-upgrade').classList.add('open');
+  }
+  function closeUpgradeModal() {
+    document.getElementById('modal-upgrade-overlay').classList.remove('open');
+    document.getElementById('modal-upgrade').classList.remove('open');
+  }
+  function goToCheckout() {
+    if (STRIPE_CHECKOUT_URL) {
+      window.location.href = STRIPE_CHECKOUT_URL;
+    } else {
+      alert('Link de pagamento em breve! Entre em contato pelo WhatsApp para assinar.');
+    }
+  }
+
   /* ── CONFIG ────────────────────────────────────────── */
   var PER_PAGE    = 25;
   var currentView = 'list';
@@ -952,6 +1239,17 @@
     document.getElementById('fs-arm').style.display = _armList.length ? '' : 'none';
   }
 
+  // Expõe funções de auth para onclick inline nos modais
+  window.openAuthModal    = openAuthModal;
+  window.closeAuthModal   = closeAuthModal;
+  window.switchTab        = switchTab;
+  window.doLogin          = doLogin;
+  window.doRegister       = doRegister;
+  window.doLogout         = doLogout;
+  window.openUpgradeModal = openUpgradeModal;
+  window.closeUpgradeModal= closeUpgradeModal;
+  window.goToCheckout     = goToCheckout;
+
   window.onCatChg = function() { selModelos.clear(); showAllMod=false; populateDynamicFilters(); applyAndRender(); };
   window.onModeloChg = function(el) { var m=el.dataset.modelo; if(el.checked) selModelos.add(m); else selModelos.delete(m); applyAndRender(); };
   window.onCorClick = function(cor) { if(selCores.has(cor)) selCores.delete(cor); else selCores.add(cor); renderCorList(); applyAndRender(); };
@@ -978,7 +1276,12 @@
     return all;
   }
 
-  loadAll().then(function(data) {
+  // Inicia auth e dados em paralelo; renderiza após ambos prontos
+  Promise.all([
+    initAuth(),
+    loadAll()
+  ]).then(function(results) {
+    var data = results[1];
     if (!data || data.length === 0) {
       document.getElementById('results-list').innerHTML =
         '<div class="empty-state"><h3>Sem dados no banco</h3>' +
@@ -1239,12 +1542,28 @@
   }
 
   function waButton(o, compact) {
+    if (!authState.isSubscriber) {
+      return '<button class="btn-lock" onclick="openUpgradeModal()">🔒 <span>Ver contato</span></button>';
+    }
     var url = buildWAUrl(o);
     var label = compact ? '' : '<span>WhatsApp</span>';
     if (url) {
       return '<a href="'+url+'" target="_blank" rel="noopener" class="btn-wa">' + waIcon() + label + '</a>';
     }
     return '<button class="btn-wa no-contact" disabled>' + waIcon() + (compact ? '' : '<span>Sem contato</span>') + '</button>';
+  }
+
+  function supplierName(o) {
+    if (!authState.isSubscriber) return '<span class="supplier-masked">••••••••</span>';
+    return esc(o.fornecedor||'—');
+  }
+  function supplierCity(o) {
+    if (!authState.isSubscriber) {
+      // mostra só o estado (sigla após vírgula ou últimas 2 letras)
+      var c = (o.cidade||''); var m = c.match(/,\s*([A-Z]{2})$/);
+      return m ? m[1] : '';
+    }
+    return esc(o.cidade||'');
   }
 
   function condChip(cond) {
@@ -1267,8 +1586,8 @@
         '<div class="item-chips">' + chips + '</div>' +
       '</div>' +
       '<div class="item-supplier">' +
-        '<div class="supplier-name">' + esc(o.fornecedor||'—') + '</div>' +
-        '<div class="supplier-city">' + esc(o.cidade||'') + '</div>' +
+        '<div class="supplier-name">' + supplierName(o) + '</div>' +
+        '<div class="supplier-city">' + supplierCity(o) + '</div>' +
         (o.data_atualizacao ? '<div class="supplier-date">atualizado '+esc(o.data_atualizacao)+'</div>' : '') +
       '</div>' +
       '<div class="item-price-wrap">' +
@@ -1298,8 +1617,8 @@
           '<div class="gc-price">' + esc(o.valor||'—') + '</div>' +
         '</div>' +
         '<div class="gc-supplier">' +
-          '<strong>' + esc(o.fornecedor||'—') + '</strong>' +
-          esc(o.cidade||'') +
+          '<strong>' + supplierName(o) + '</strong>' +
+          supplierCity(o) +
         '</div>' +
       '</div>' +
       '<div class="gc-footer">' + waButton(o, false) + '</div>' +
