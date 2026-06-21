@@ -540,8 +540,23 @@
     .sidebar-overlay {
       display: none; position: fixed; inset: 0; z-index: 290;
       background: rgba(0,0,0,.45); backdrop-filter: blur(2px);
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
     .sidebar-overlay.open { display: block; }
+    /* Botão fechar e footer do drawer (só mobile) */
+    .btn-sidebar-fechar {
+      display: none; width: 30px; height: 30px; border-radius: 50%;
+      background: var(--gray-light); border: none; font-size: 14px;
+      cursor: pointer; color: var(--gray);
+      align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .sidebar-footer { display: none; padding: 14px 20px 20px; border-top: 1px solid var(--gray-border); }
+    .btn-ver-resultados {
+      width: 100%; padding: 14px; background: var(--black); color: #fff;
+      border: none; border-radius: 12px; font-size: 15px; font-weight: 600;
+      cursor: pointer; font-family: inherit; transition: opacity .2s;
+    }
+    .btn-ver-resultados:hover { opacity: .85; }
 
     /* ── RESPONSIVE ──────────────────────────────────────── */
     @media (max-width: 1000px) {
@@ -565,8 +580,10 @@
         box-shadow: 0 -8px 40px rgba(0,0,0,.18);
       }
       .sidebar.open { transform: translateY(0); }
-      .sidebar-handle { display: block; }
+      .sidebar-handle { display: block; cursor: pointer; padding: 8px 0 4px; }
       .btn-filtros-mobile { display: flex; }
+      .btn-sidebar-fechar { display: flex; }
+      .sidebar-footer { display: block; }
 
       .content { padding: 16px 14px 100px; }
       .controls-bar { gap: 6px; padding: 8px 10px; }
@@ -866,10 +883,13 @@
 
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
-    <span class="sidebar-handle"></span>
+    <span class="sidebar-handle" onclick="closeSidebar()" title="Fechar filtros"></span>
     <div class="sidebar-header">
       <span class="sidebar-title">Filtros</span>
-      <button class="btn-limpar" onclick="clearFilters()">Limpar tudo</button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn-limpar" onclick="clearFilters()">Limpar tudo</button>
+        <button class="btn-sidebar-fechar" onclick="closeSidebar()" title="Fechar">✕</button>
+      </div>
     </div>
 
     <!-- Localização -->
@@ -964,6 +984,11 @@
         <input class="radio-input" type="radio" name="cond" value="Usado" onchange="applyAndRender()">
         <span class="radio-label">Usado</span>
       </label>
+    </div>
+
+    <!-- Footer do drawer (só mobile) -->
+    <div class="sidebar-footer">
+      <button class="btn-ver-resultados" onclick="closeSidebar()">Ver resultados</button>
     </div>
   </aside>
 
@@ -1733,15 +1758,13 @@
   /* ── MOBILE SIDEBAR ─────────────────────────────────── */
   window.openSidebar = function() {
     document.getElementById('sidebar').classList.add('open');
-    var ov = document.getElementById('sidebar-overlay');
-    ov.style.display = 'block';
-    requestAnimationFrame(function(){ ov.style.opacity = '1'; });
+    document.getElementById('sidebar-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
   };
   window.closeSidebar = function() {
     document.getElementById('sidebar').classList.remove('open');
-    var ov = document.getElementById('sidebar-overlay');
-    ov.style.opacity = '0';
-    setTimeout(function(){ ov.style.display = 'none'; }, 300);
+    document.getElementById('sidebar-overlay').classList.remove('open');
+    document.body.style.overflow = '';
   };
 
   /* ── HELPERS ────────────────────────────────────────── */
