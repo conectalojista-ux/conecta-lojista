@@ -550,7 +550,7 @@
       cursor: pointer; color: var(--gray);
       align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .sidebar-footer { display: none; padding: 14px 20px 20px; border-top: 1px solid var(--gray-border); }
+    .sidebar-footer { display: none; padding: 14px 20px 20px; border-top: 1px solid var(--gray-border); flex-shrink: 0; background: #fff; }
     .btn-ver-resultados {
       width: 100%; padding: 14px; background: var(--black); color: #fff;
       border: none; border-radius: 12px; font-size: 15px; font-weight: 600;
@@ -576,9 +576,12 @@
       .hstat:not(:first-child) { display: none; }
     }
 
+    /* Sidebar body scrollável (dentro do drawer) */
+    .sidebar-body { flex: 1; overflow-y: auto; }
+
     /* Tablet / Mobile — sidebar vira drawer de baixo */
     @media (max-width: 768px) {
-      /* Sidebar → bottom sheet */
+      /* Sidebar → bottom sheet com flex para footer fixo */
       .sidebar {
         position: fixed; bottom: 0; left: 0; right: 0; top: auto !important;
         width: 100% !important; max-height: 82vh;
@@ -586,8 +589,9 @@
         border-right: none; border-top: 1px solid var(--gray-border);
         transform: translateY(100%);
         transition: transform .35s cubic-bezier(.32,.72,0,1);
-        z-index: 300; overflow-y: auto;
+        z-index: 300; overflow-y: hidden;
         box-shadow: 0 -8px 40px rgba(0,0,0,.18);
+        display: flex; flex-direction: column;
       }
       .sidebar.open { transform: translateY(0); }
       .sidebar-handle { display: block; cursor: pointer; }
@@ -809,7 +813,7 @@
       <svg class="ic-search" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
       </svg>
-      <input id="inp-search" type="text" placeholder="Buscar modelo, fornecedor, cidade…" autocomplete="off">
+      <input id="inp-search" type="text" placeholder="Buscar modelo, fornecedor, cidade…" autocomplete="off" oninput="applyAndRender()">
     </div>
 
     <!-- AUTH AREA -->
@@ -922,6 +926,9 @@
       </div>
     </div>
 
+    <!-- BODY SCROLLÁVEL DO DRAWER -->
+    <div class="sidebar-body">
+
     <!-- Localização -->
     <div class="filter-section">
       <div class="filter-label">Localização</div>
@@ -1016,9 +1023,11 @@
       </label>
     </div>
 
-    <!-- Footer do drawer (só mobile) -->
+    </div><!-- /sidebar-body -->
+
+    <!-- Footer do drawer (só mobile) — sempre visível no fundo -->
     <div class="sidebar-footer">
-      <button class="btn-ver-resultados" onclick="closeSidebar()">Ver resultados</button>
+      <button class="btn-ver-resultados" id="btn-ver-resultados" onclick="closeSidebar()">Ver resultados</button>
     </div>
   </aside>
 
@@ -1637,6 +1646,10 @@
 
     /* green bar */
     document.getElementById('gb-total').textContent = total.toLocaleString('pt-BR');
+
+    /* botão ver resultados — atualiza contagem em tempo real */
+    var btnVer = document.getElementById('btn-ver-resultados');
+    if (btnVer) btnVer.textContent = 'Ver ' + total.toLocaleString('pt-BR') + ' resultado' + (total!==1?'s':'');
 
     /* items */
     if (currentView === 'list') {
