@@ -646,14 +646,18 @@
   Filtros
 </button>
 
-<!-- DATA -->
-<script src="data/ofertas.js"></script>
+<!-- SUPABASE SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function () {
   'use strict';
 
+  var SUPA_URL = 'https://desfdtxbvuqazvsrmhwp.supabase.co';
+  var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlc2ZkdHhidnVxYXp2c3JtaHdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5OTE2NDQsImV4cCI6MjA5NzU2NzY0NH0.1O6oPuah6r2j7XGdWrZNyU5JYIVBjA-UwAT9UrF8hy0';
+  var supabase = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+
   /* ── CONFIG ────────────────────────────────────────── */
-  var PER_PAGE = 25;
+  var PER_PAGE    = 25;
   var currentView = 'list';
 
   /* ── STATE ─────────────────────────────────────────── */
@@ -661,15 +665,33 @@
   var filtered = [];
   var page     = 1;
 
-  /* ── BOOT ───────────────────────────────────────────── */
-  if (typeof window.CONECTA_DATA !== 'undefined' && window.CONECTA_DATA.length) {
-    allData = window.CONECTA_DATA;
-    boot();
-  } else {
-    document.getElementById('results-list').innerHTML =
-      '<div class="empty-state"><h3>Dados nao encontrados</h3>' +
-      '<p>Execute <code>python converter.py</code> e recarregue a pagina.</p></div>';
+  /* ── BOOT — carrega dados do Supabase em chunks ─────── */
+  async function loadAll() {
+    var all = [], from = 0, CHUNK = 1000;
+    while (true) {
+      var res = await supabase
+        .from('ofertas')
+        .select('*')
+        .order('valor_num', { ascending: true })
+        .range(from, from + CHUNK - 1);
+      if (res.error || !res.data || res.data.length === 0) break;
+      all = all.concat(res.data);
+      if (res.data.length < CHUNK) break;
+      from += CHUNK;
+    }
+    return all;
   }
+
+  loadAll().then(function(data) {
+    if (!data || data.length === 0) {
+      document.getElementById('results-list').innerHTML =
+        '<div class="empty-state"><h3>Sem dados no banco</h3>' +
+        '<p>Execute <code>python import_supabase.py</code> para importar as ofertas.</p></div>';
+      return;
+    }
+    allData = data;
+    boot();
+  });
 
   function boot() {
     populateCounts();
