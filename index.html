@@ -924,6 +924,7 @@
     <div class="auth-field"><label>Senha</label><input type="password" id="login-pass" placeholder="••••••••"></div>
     <div class="auth-error" id="login-error"></div>
     <button class="btn-auth-submit" onclick="doLogin()">Entrar</button>
+    <p class="auth-link"><a href="#" onclick="doForgotPassword();return false">Esqueci minha senha</a></p>
     <p class="auth-link">Não tem conta? <a href="#" onclick="switchTab('register');return false">Criar conta</a></p>
   </div>
 
@@ -1096,7 +1097,7 @@
 
     <!-- Controls bar -->
     <div class="controls-bar">
-      <select class="ctrl-select" id="f-state" onchange="applyAndRender()">
+      <select class="ctrl-select" id="f-state" onchange="onStateChange()">
         <option value="">Todos os estados</option>
       </select>
       <select class="ctrl-select" id="f-city" onchange="applyAndRender()">
@@ -1111,6 +1112,7 @@
       <select class="ctrl-select" id="sel-sort" onchange="applyAndRender()">
         <option value="preco-asc">Menor preço</option>
         <option value="preco-desc">Maior preço</option>
+        <option value="recent">Mais recentes</option>
         <option value="az">A → Z</option>
       </select>
       <div class="ctrl-right">
@@ -1201,6 +1203,7 @@
     renderHeaderAuth();
 
     supabase.auth.onAuthStateChange(async function(_event, session) {
+      if (_event === 'PASSWORD_RECOVERY') { handlePasswordRecovery(); }
       if (session) {
         authState.user = session.user;
         authState.isSubscriber = await checkSubscription(session.user.id);
@@ -1211,6 +1214,15 @@
       renderHeaderAuth();
       render();
     });
+  }
+
+  /* Usuário voltou pelo link de recuperação → define nova senha */
+  async function handlePasswordRecovery() {
+    var nova = window.prompt('Defina sua nova senha (mínimo 6 caracteres):');
+    if (!nova) return;
+    if (nova.length < 6) { alert('A senha precisa ter ao menos 6 caracteres.'); return; }
+    var { error } = await supabase.auth.updateUser({ password: nova });
+    alert(error ? ('Erro ao atualizar senha: ' + error.message) : 'Senha atualizada com sucesso!');
   }
 
   /* ── AUTH MODAL ──────────────────────────────────────── */
@@ -1234,10 +1246,23 @@
     var email = document.getElementById('login-email').value.trim();
     var pass  = document.getElementById('login-pass').value;
     var errEl = document.getElementById('login-error');
+    errEl.style.color = '';
     errEl.textContent = '';
     var { error } = await supabase.auth.signInWithPassword({ email: email, password: pass });
     if (error) { errEl.textContent = error.message; return; }
     closeAuthModal();
+  }
+
+  async function doForgotPassword() {
+    var email = document.getElementById('login-email').value.trim();
+    var errEl = document.getElementById('login-error');
+    errEl.style.color = '';
+    if (!email) { errEl.textContent = 'Digite seu e-mail acima para receber o link de recuperação.'; return; }
+    var redirectTo = window.location.origin + window.location.pathname;
+    var { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: redirectTo });
+    if (error) { errEl.textContent = error.message; return; }
+    errEl.style.color = '#22c55e';
+    errEl.textContent = 'Enviamos um link de recuperação para ' + email + '.';
   }
 
   async function doRegister() {
@@ -1442,6 +1467,7 @@
   window.closeAuthModal   = closeAuthModal;
   window.switchTab        = switchTab;
   window.doLogin          = doLogin;
+  window.doForgotPassword = doForgotPassword;
   window.doRegister       = doRegister;
   window.doLogout         = doLogout;
   window.openUpgradeModal = openUpgradeModal;
@@ -1474,10 +1500,32 @@
     return all;
   }
 
+  /* Cache-first: usa localStorage se fresco (<6h), senão busca e grava.
+     Os dados do scraper só mudam 1x/dia, então o cache evita rebaixar tudo a cada visita. */
+  var CACHE_KEY = 'cl_ofertas_v1';
+  var CACHE_TTL = 6 * 60 * 60 * 1000;
+  async function loadAllCached() {
+    try {
+      var raw = localStorage.getItem(CACHE_KEY);
+      if (raw) {
+        var obj = JSON.parse(raw);
+        if (obj && obj.ts && (Date.now() - obj.ts < CACHE_TTL) &&
+            Array.isArray(obj.data) && obj.data.length) {
+          return obj.data;
+        }
+      }
+    } catch (e) { /* cache corrompido/indisponível — ignora */ }
+    var data = await loadAll();
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: data }));
+    } catch (e) { /* quota cheia — segue sem cache */ }
+    return data;
+  }
+
   // Inicia auth e dados em paralelo; renderiza após ambos prontos
   Promise.all([
     initAuth(),
-    loadAll()
+    loadAllCached()
   ]).then(function(results) {
     var data = results[1];
     if (!data || data.length === 0) {
@@ -1490,12 +1538,15 @@
     boot();
   });
 
+  var _restorePage = 1;
   function boot() {
     populateCounts();
     populateLocationSelects();
+    restoreFromURL();
     populateDynamicFilters();
     updateGlobalStats();
     applyAndRender();
+    if (_restorePage > 1) { page = _restorePage; render(); }
   }
 
   /* ── COUNTS ─────────────────────────────────────────── */
@@ -1554,10 +1605,8 @@
   /* ── LOCATION DROPDOWNS ─────────────────────────────── */
   function populateLocationSelects() {
     var stateSet = new Set();
-    var citySet  = new Set();
     allData.forEach(function(o) {
       var c = o.cidade || '';
-      citySet.add(c);
       var parts = c.split(',');
       if (parts.length > 1) stateSet.add(parts[parts.length-1].trim());
     });
@@ -1568,13 +1617,33 @@
       stateEl.appendChild(opt);
     });
 
+    repopulateCities();
+  }
+
+  /* Preenche a lista de cidades limitada ao estado selecionado (cascata) */
+  function repopulateCities() {
+    var state  = document.getElementById('f-state').value;
     var cityEl = document.getElementById('f-city');
-    Array.from(citySet).sort().forEach(function(c) {
+    var current = cityEl.value;
+    var citySet = new Set();
+    allData.forEach(function(o) {
+      var c = o.cidade || '';
       if (!c) return;
+      if (!state || c.endsWith(state)) citySet.add(c);
+    });
+    cityEl.innerHTML = '<option value="">Todas as cidades</option>';
+    Array.from(citySet).sort().forEach(function(c) {
       var opt = document.createElement('option'); opt.value = c; opt.textContent = c;
       cityEl.appendChild(opt);
     });
+    cityEl.value = (current && citySet.has(current)) ? current : '';
   }
+
+  /* Mudou o estado → recarrega cidades e refiltra */
+  window.onStateChange = function() {
+    repopulateCities();
+    applyAndRender();
+  };
 
   /* ── FILTERS ────────────────────────────────────────── */
   window.applyAndRender = function() {
@@ -1589,6 +1658,80 @@
     return function() { clearTimeout(t); t = setTimeout(fn, wait); };
   }
   window.onSearchInput = debounce(function(){ window.applyAndRender(); }, 250);
+
+  /* ── ESTADO NA URL (compartilhável) ─────────────────── */
+  function syncURL() {
+    try {
+      var p = new URLSearchParams();
+      var cats = Array.from(document.querySelectorAll('.check-input:checked'))
+        .map(function(e){ return e.dataset.cat; });
+      if (cats.length !== 4) p.set('cat', cats.join(','));
+      var q   = document.getElementById('inp-search').value.trim();   if (q)   p.set('q', q);
+      var loc = document.getElementById('f-location').value.trim();   if (loc) p.set('loc', loc);
+      var st  = document.getElementById('f-state').value;             if (st)  p.set('st', st);
+      var ct  = document.getElementById('f-city').value;              if (ct)  p.set('ct', ct);
+      var pmin= document.getElementById('f-pmin-inp').value;          if (pmin)p.set('pmin', pmin);
+      var pmax= document.getElementById('f-pmax-inp').value;          if (pmax)p.set('pmax', pmax);
+      var cond= document.querySelector('input[name="cond"]:checked'); if (cond && cond.value) p.set('cond', cond.value);
+      if (selModelos.size)  p.set('mod', Array.from(selModelos).join(','));
+      if (selCores.size)    p.set('cor', Array.from(selCores).join(','));
+      if (selStorages.size) p.set('arm', Array.from(selStorages).join(','));
+      var sort = document.getElementById('sel-sort').value; if (sort && sort !== 'preco-asc') p.set('sort', sort);
+      if (currentView === 'grid') p.set('view', 'grid');
+      if (PER_PAGE !== 25) p.set('pp', String(PER_PAGE));
+      if (page > 1) p.set('pg', String(page));
+      var qs = p.toString();
+      history.replaceState(null, '', window.location.pathname + (qs ? '?' + qs : ''));
+    } catch (e) { /* file:// ou navegador sem History API — ignora */ }
+  }
+
+  function restoreFromURL() {
+    if (!window.location.search) return;
+    var params = new URLSearchParams(window.location.search);
+
+    if (params.has('cat')) {
+      var list = params.get('cat') ? params.get('cat').split(',') : [];
+      document.querySelectorAll('.check-input').forEach(function(el){
+        el.checked = list.indexOf(el.dataset.cat) >= 0;
+      });
+    }
+    if (params.has('q'))   document.getElementById('inp-search').value = params.get('q');
+    if (params.has('loc')) document.getElementById('f-location').value = params.get('loc');
+    if (params.has('st'))  document.getElementById('f-state').value = params.get('st');
+    repopulateCities();
+    if (params.has('ct'))  document.getElementById('f-city').value = params.get('ct');
+    if (params.has('pmin'))document.getElementById('f-pmin-inp').value = params.get('pmin');
+    if (params.has('pmax')) {
+      var pv = params.get('pmax');
+      document.getElementById('f-pmax-inp').value = pv;
+      var slider = document.getElementById('f-pmax');
+      if (+pv <= +slider.max) {
+        slider.value = pv;
+        document.getElementById('pmax-disp').textContent = Number(pv).toLocaleString('pt-BR');
+      }
+    }
+    if (params.has('cond')) {
+      var r = document.querySelector('input[name="cond"][value="' + params.get('cond') + '"]');
+      if (r) r.checked = true;
+    }
+    if (params.has('mod')) params.get('mod').split(',').forEach(function(m){ if (m) selModelos.add(m); });
+    if (params.has('cor')) params.get('cor').split(',').forEach(function(c){ if (c) selCores.add(c); });
+    if (params.has('arm')) params.get('arm').split(',').forEach(function(a){ if (a) selStorages.add(a); });
+    if (params.has('sort')) document.getElementById('sel-sort').value = params.get('sort');
+    if (params.has('pp')) {
+      var pp = params.get('pp');
+      document.getElementById('sel-perpage').value = pp;
+      PER_PAGE = parseInt(pp) || 25;
+    }
+    if (params.get('view') === 'grid') {
+      currentView = 'grid';
+      document.getElementById('btn-list').classList.remove('active');
+      document.getElementById('btn-grid').classList.add('active');
+      document.getElementById('results-list').classList.add('hidden');
+      document.getElementById('results-grid').classList.add('active');
+    }
+    if (params.has('pg')) _restorePage = parseInt(params.get('pg')) || 1;
+  }
 
   function compute() {
     var data = allData.slice();
@@ -1672,6 +1815,10 @@
     if (sort === 'preco-asc')  data.sort(function(a,b){ return (a.valor_num||999999)-(b.valor_num||999999); });
     if (sort === 'preco-desc') data.sort(function(a,b){ return (b.valor_num||0)-(a.valor_num||0); });
     if (sort === 'az')         data.sort(function(a,b){ return (a.modelo||'').localeCompare(b.modelo||'','pt'); });
+    if (sort === 'recent')     data.sort(function(a,b){
+      var da = parseUpdatedDate(a.data_atualizacao), db = parseUpdatedDate(b.data_atualizacao);
+      return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
+    });
 
     return data;
   }
@@ -1834,6 +1981,7 @@
     }
 
     renderPagination(total, pages);
+    syncURL();
   }
 
   /* ── LIST ITEM ──────────────────────────────────────── */
