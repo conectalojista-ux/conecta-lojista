@@ -575,6 +575,32 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ── SKELETON LOADING ────────────────────────────────── */
+    .skeleton-list { display: flex; flex-direction: column; gap: 8px; }
+    .sk-item {
+      display: flex; align-items: center; gap: 16px;
+      background: #fff; border: 1px solid var(--gray-border);
+      border-radius: var(--radius-card); padding: 14px 20px;
+      box-shadow: var(--shadow-card);
+    }
+    .sk-block { background: var(--gray-light); border-radius: 8px; position: relative; overflow: hidden; }
+    .sk-block::after {
+      content: ''; position: absolute; inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent);
+      animation: sk-shimmer 1.3s infinite;
+    }
+    @keyframes sk-shimmer { 100% { transform: translateX(100%); } }
+    .sk-icon { width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0; }
+    .sk-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+    .sk-line-1 { width: 45%; height: 13px; }
+    .sk-line-2 { width: 28%; height: 11px; }
+    .sk-supplier { width: 150px; height: 12px; flex-shrink: 0; }
+    .sk-price { width: 90px; height: 18px; flex-shrink: 0; }
+    .sk-btn { width: 110px; height: 38px; border-radius: 10px; flex-shrink: 0; }
+    @media (max-width: 860px) { .sk-supplier { display: none; } }
+    @media (max-width: 480px) { .sk-price, .sk-btn { display: none; } }
+
     /* ── MOBILE DRAWER ───────────────────────────────────── */
     .btn-filtros-mobile {
       display: none;
@@ -822,7 +848,16 @@
     .modal-upgrade { text-align:center; }
     .upgrade-icon { font-size:40px; margin-bottom:8px; }
     .upgrade-title { font-size:20px; font-weight:700; color:var(--black); margin:0 0 8px; }
-    .upgrade-sub { font-size:13px; color:var(--gray); margin:0 0 20px; line-height:1.5; }
+    .upgrade-sub { font-size:13px; color:var(--gray); margin:0 0 16px; line-height:1.5; }
+    .upgrade-social {
+      display:flex; align-items:center; justify-content:center; gap:0;
+      background:var(--green-bg); border:1px solid rgba(22,101,52,.14);
+      border-radius:12px; padding:10px 8px; margin:0 0 20px;
+    }
+    .upgrade-social .us-item { flex:1; display:flex; flex-direction:column; gap:2px; }
+    .upgrade-social .us-num { font-size:18px; font-weight:800; color:var(--green); line-height:1.1; }
+    .upgrade-social .us-lbl { font-size:10px; color:var(--gray); text-transform:uppercase; letter-spacing:.04em; }
+    .upgrade-social .us-sep { width:1px; align-self:stretch; background:rgba(22,101,52,.14); }
     .upgrade-price { margin-bottom:20px; }
     .price-val { font-size:36px; font-weight:800; color:var(--black); }
     .price-period { font-size:16px; color:var(--gray); }
@@ -929,12 +964,20 @@
   </div>
 
   <div id="auth-register" style="display:none">
-    <p class="modal-sub">Crie sua conta — assine depois para ter acesso completo</p>
-    <div class="auth-field"><label>E-mail</label><input type="email" id="reg-email" placeholder="seu@email.com"></div>
-    <div class="auth-field"><label>Senha</label><input type="password" id="reg-pass" placeholder="mínimo 6 caracteres"></div>
-    <div class="auth-error" id="reg-error"></div>
-    <button class="btn-auth-submit" onclick="doRegister()">Criar conta</button>
-    <p class="auth-link">Já tem conta? <a href="#" onclick="switchTab('login');return false">Entrar</a></p>
+    <div id="reg-form">
+      <p class="modal-sub">Crie sua conta — assine depois para ter acesso completo</p>
+      <div class="auth-field"><label>E-mail</label><input type="email" id="reg-email" placeholder="seu@email.com"></div>
+      <div class="auth-field"><label>Senha</label><input type="password" id="reg-pass" placeholder="mínimo 6 caracteres"></div>
+      <div class="auth-error" id="reg-error"></div>
+      <button class="btn-auth-submit" id="btn-register" onclick="doRegister()">Criar conta</button>
+      <p class="auth-link">Já tem conta? <a href="#" onclick="switchTab('login');return false">Entrar</a></p>
+    </div>
+    <div id="reg-success" style="display:none;text-align:center;padding:8px 0 4px">
+      <div style="font-size:42px;margin-bottom:10px">📧</div>
+      <h3 style="font-size:18px;font-weight:700;color:var(--black);margin-bottom:8px">Confirme seu e-mail</h3>
+      <p class="modal-sub" id="reg-success-msg" style="margin-bottom:20px"></p>
+      <button class="btn-auth-submit" onclick="switchTab('login')">Ir para o login</button>
+    </div>
   </div>
 </div>
 
@@ -945,6 +988,7 @@
   <div class="upgrade-icon">🔒</div>
   <h2 class="upgrade-title">Acesso completo aos fornecedores</h2>
   <p class="upgrade-sub">Assine o Conecta Lojista e veja nome, contato e WhatsApp direto de todos os fornecedores.</p>
+  <div class="upgrade-social" id="upgrade-social"></div>
   <div class="upgrade-price">
     <span class="price-val">R$ 100</span>
     <span class="price-period">/mês</span>
@@ -1049,6 +1093,7 @@
           <span>R$ <span id="pmin-disp">0</span></span>
           <span>R$ <span id="pmax-disp">50.000</span></span>
         </div>
+        <input class="range-slider" type="range" id="f-pmin" min="0" max="50000" step="100" value="0" oninput="onPriceRangeMin()">
         <input class="range-slider" type="range" id="f-pmax" min="0" max="50000" step="100" value="50000" oninput="onPriceRange()">
         <div class="price-inputs">
           <input class="price-input" id="f-pmin-inp" type="number" placeholder="Mín" min="0" oninput="applyAndRender()">
@@ -1133,9 +1178,14 @@
 
     <!-- Results -->
     <div class="results-list" id="results-list">
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <p style="color:#999">Carregando ofertas…</p>
+      <div class="skeleton-list" id="skeleton-list">
+        <div class="sk-item"><div class="sk-block sk-icon"></div><div class="sk-main"><div class="sk-block sk-line-1"></div><div class="sk-block sk-line-2"></div></div><div class="sk-block sk-supplier"></div><div class="sk-block sk-price"></div><div class="sk-block sk-btn"></div></div>
+        <div class="sk-item"><div class="sk-block sk-icon"></div><div class="sk-main"><div class="sk-block sk-line-1"></div><div class="sk-block sk-line-2"></div></div><div class="sk-block sk-supplier"></div><div class="sk-block sk-price"></div><div class="sk-block sk-btn"></div></div>
+        <div class="sk-item"><div class="sk-block sk-icon"></div><div class="sk-main"><div class="sk-block sk-line-1"></div><div class="sk-block sk-line-2"></div></div><div class="sk-block sk-supplier"></div><div class="sk-block sk-price"></div><div class="sk-block sk-btn"></div></div>
+        <div class="sk-item"><div class="sk-block sk-icon"></div><div class="sk-main"><div class="sk-block sk-line-1"></div><div class="sk-block sk-line-2"></div></div><div class="sk-block sk-supplier"></div><div class="sk-block sk-price"></div><div class="sk-block sk-btn"></div></div>
+        <div class="sk-item"><div class="sk-block sk-icon"></div><div class="sk-main"><div class="sk-block sk-line-1"></div><div class="sk-block sk-line-2"></div></div><div class="sk-block sk-supplier"></div><div class="sk-block sk-price"></div><div class="sk-block sk-btn"></div></div>
+        <div class="sk-item"><div class="sk-block sk-icon"></div><div class="sk-main"><div class="sk-block sk-line-1"></div><div class="sk-block sk-line-2"></div></div><div class="sk-block sk-supplier"></div><div class="sk-block sk-price"></div><div class="sk-block sk-btn"></div></div>
+        <div class="sk-item"><div class="sk-block sk-icon"></div><div class="sk-main"><div class="sk-block sk-line-1"></div><div class="sk-block sk-line-2"></div></div><div class="sk-block sk-supplier"></div><div class="sk-block sk-price"></div><div class="sk-block sk-btn"></div></div>
       </div>
     </div>
 
@@ -1240,6 +1290,9 @@
     document.getElementById('auth-register').style.display = tab==='register' ? '' : 'none';
     document.getElementById('tab-login').classList.toggle('active',    tab==='login');
     document.getElementById('tab-register').classList.toggle('active', tab==='register');
+    // garante o formulário de cadastro visível (e não o painel de sucesso) ao reabrir
+    var rf = document.getElementById('reg-form'), rs = document.getElementById('reg-success');
+    if (rf && rs) { rf.style.display = ''; rs.style.display = 'none'; }
   }
 
   async function doLogin() {
@@ -1269,11 +1322,20 @@
     var email = document.getElementById('reg-email').value.trim();
     var pass  = document.getElementById('reg-pass').value;
     var errEl = document.getElementById('reg-error');
+    errEl.style.color = '';
     errEl.textContent = '';
+    if (!email) { errEl.textContent = 'Informe um e-mail válido.'; return; }
+    if (pass.length < 6) { errEl.textContent = 'A senha precisa ter ao menos 6 caracteres.'; return; }
+    var btn = document.getElementById('btn-register');
+    if (btn) { btn.disabled = true; btn.textContent = 'Criando…'; }
     var { error } = await supabase.auth.signUp({ email: email, password: pass });
+    if (btn) { btn.disabled = false; btn.textContent = 'Criar conta'; }
     if (error) { errEl.textContent = error.message; return; }
-    errEl.style.color = '#22c55e';
-    errEl.textContent = 'Conta criada! Verifique seu e-mail para confirmar.';
+    document.getElementById('reg-success-msg').innerHTML =
+      'Enviamos um link de confirmação para <strong>' + esc(email) + '</strong>. ' +
+      'Abra seu e-mail e confirme para ativar a conta.';
+    document.getElementById('reg-form').style.display = 'none';
+    document.getElementById('reg-success').style.display = '';
   }
 
   async function doLogout() {
@@ -1281,7 +1343,20 @@
   }
 
   /* ── UPGRADE MODAL ───────────────────────────────────── */
+  function fillUpgradeSocial() {
+    var box = document.getElementById('upgrade-social');
+    if (!box || !allData.length) return;
+    var sup = new Set(allData.map(function(o){ return o.fornecedor; }).filter(Boolean)).size;
+    var total = allData.length;
+    box.innerHTML =
+      '<div class="us-item"><span class="us-num">' + sup.toLocaleString('pt-BR') + '</span><span class="us-lbl">Fornecedores</span></div>' +
+      '<div class="us-sep"></div>' +
+      '<div class="us-item"><span class="us-num">' + total.toLocaleString('pt-BR') + '</span><span class="us-lbl">Ofertas</span></div>' +
+      '<div class="us-sep"></div>' +
+      '<div class="us-item"><span class="us-num">Hoje</span><span class="us-lbl">Atualizado</span></div>';
+  }
   function openUpgradeModal() {
+    fillUpgradeSocial();
     document.getElementById('modal-upgrade-overlay').classList.add('open');
     document.getElementById('modal-upgrade').classList.add('open');
   }
@@ -1304,6 +1379,7 @@
   /* ── CONFIG ────────────────────────────────────────── */
   var PER_PAGE    = 25;
   var currentView = 'list';
+  var PRICE_MAX   = 50000;   // recalculado a partir dos dados em setupPriceRange()
 
   /* ── STATE ─────────────────────────────────────────── */
   var allData  = [];
@@ -1542,6 +1618,7 @@
   function boot() {
     populateCounts();
     populateLocationSelects();
+    setupPriceRange();
     restoreFromURL();
     populateDynamicFilters();
     updateGlobalStats();
@@ -1700,7 +1777,15 @@
     if (params.has('st'))  document.getElementById('f-state').value = params.get('st');
     repopulateCities();
     if (params.has('ct'))  document.getElementById('f-city').value = params.get('ct');
-    if (params.has('pmin'))document.getElementById('f-pmin-inp').value = params.get('pmin');
+    if (params.has('pmin')) {
+      var pvmin = params.get('pmin');
+      document.getElementById('f-pmin-inp').value = pvmin;
+      var slMin = document.getElementById('f-pmin');
+      if (+pvmin >= 0 && +pvmin <= +slMin.max) {
+        slMin.value = pvmin;
+        document.getElementById('pmin-disp').textContent = Number(pvmin).toLocaleString('pt-BR');
+      }
+    }
     if (params.has('pmax')) {
       var pv = params.get('pmax');
       document.getElementById('f-pmax-inp').value = pv;
@@ -1830,8 +1915,9 @@
     document.getElementById('f-city').value = '';
     document.getElementById('f-pmin-inp').value = '';
     document.getElementById('f-pmax-inp').value = '';
-    document.getElementById('f-pmax').value = 50000;
-    document.getElementById('pmax-disp').textContent = '50.000';
+    document.getElementById('f-pmin').value = 0;
+    document.getElementById('f-pmax').value = PRICE_MAX;
+    document.getElementById('pmax-disp').textContent = PRICE_MAX.toLocaleString('pt-BR');
     document.getElementById('pmin-disp').textContent = '0';
     document.querySelectorAll('.check-input').forEach(function(el){ el.checked = true; });
     document.querySelector('input[name="cond"][value=""]').checked = true;
@@ -1842,10 +1928,37 @@
   };
 
   /* ── PRICE RANGE ────────────────────────────────────── */
+  /* Ajusta o teto dos sliders ao maior preço real dos dados (#7) */
+  function setupPriceRange() {
+    var max = 0;
+    allData.forEach(function(o){ if ((o.valor_num||0) > max) max = o.valor_num; });
+    PRICE_MAX = Math.max(1000, Math.ceil(max / 1000) * 1000);
+    ['f-pmin','f-pmax'].forEach(function(id){
+      var el = document.getElementById(id); if (el) el.max = PRICE_MAX;
+    });
+    var maxInp = document.getElementById('f-pmax-inp'); if (maxInp) maxInp.max = PRICE_MAX;
+    var pmax = document.getElementById('f-pmax');
+    if (pmax) pmax.value = PRICE_MAX;
+    document.getElementById('pmax-disp').textContent = PRICE_MAX.toLocaleString('pt-BR');
+  }
+
   window.onPriceRange = function() {
-    var v = document.getElementById('f-pmax').value;
-    document.getElementById('pmax-disp').textContent = Number(v).toLocaleString('pt-BR');
-    document.getElementById('f-pmax-inp').value = v;
+    var slMin = document.getElementById('f-pmin');
+    var slMax = document.getElementById('f-pmax');
+    var vmax = +slMax.value;
+    if (vmax < +slMin.value) { vmax = +slMin.value; slMax.value = vmax; }
+    document.getElementById('pmax-disp').textContent = vmax.toLocaleString('pt-BR');
+    document.getElementById('f-pmax-inp').value = (vmax < PRICE_MAX) ? vmax : '';
+    applyAndRender();
+  };
+
+  window.onPriceRangeMin = function() {
+    var slMin = document.getElementById('f-pmin');
+    var slMax = document.getElementById('f-pmax');
+    var vmin = +slMin.value;
+    if (vmin > +slMax.value) { vmin = +slMax.value; slMin.value = vmin; }
+    document.getElementById('pmin-disp').textContent = vmin.toLocaleString('pt-BR');
+    document.getElementById('f-pmin-inp').value = (vmin > 0) ? vmin : '';
     applyAndRender();
   };
 
@@ -1933,11 +2046,15 @@
       case 'location': document.getElementById('f-location').value = ''; break;
       case 'state':    document.getElementById('f-state').value = ''; break;
       case 'city':     document.getElementById('f-city').value = ''; break;
-      case 'pmin':     document.getElementById('f-pmin-inp').value = ''; break;
+      case 'pmin':
+        document.getElementById('f-pmin-inp').value = '';
+        document.getElementById('f-pmin').value = 0;
+        document.getElementById('pmin-disp').textContent = '0';
+        break;
       case 'pmax':
         document.getElementById('f-pmax-inp').value = '';
-        document.getElementById('f-pmax').value = 50000;
-        document.getElementById('pmax-disp').textContent = '50.000';
+        document.getElementById('f-pmax').value = PRICE_MAX;
+        document.getElementById('pmax-disp').textContent = PRICE_MAX.toLocaleString('pt-BR');
         break;
       case 'cond':     document.querySelector('input[name="cond"][value=""]').checked = true; break;
       case 'modelo':   selModelos.delete(value); renderModeloList(); break;
@@ -1995,6 +2112,15 @@
     return icons[cat] || '📦';
   }
 
+  /* Miniatura com dimensões (evita CLS) e fallback p/ emoji se a imagem falhar (#19) */
+  function imgThumb(o, w, h) {
+    var emoji = categoryIcon(o.categoria);
+    if (!o.foto_url) return emoji;
+    return '<img src="' + esc(o.foto_url) + '" alt="" width="' + w + '" height="' + h + '" ' +
+      'loading="lazy" decoding="async" ' +
+      'onerror="this.style.display=\'none\';this.parentNode.insertAdjacentText(\'beforeend\',\'' + emoji + '\')">';
+  }
+
   /* ── WhatsApp com mensagem pré-preenchida ─────────────── */
   function buildWAUrl(o) {
     if (!o.telefone) return null;
@@ -2047,9 +2173,7 @@
     if (mc.cap) chips += '<span class="chip-storage">' + esc(mc.cap) + '</span>';
     if (o.cor)  chips += '<span class="chip-cor">' + esc(o.cor) + '</span>';
 
-    var iconHtml = o.foto_url
-      ? '<img src="'+esc(o.foto_url)+'" alt="" loading="lazy">'
-      : categoryIcon(o.categoria);
+    var iconHtml = imgThumb(o, 38, 38);
     return '<div class="list-item">' +
       '<div class="item-icon cat-' + (o.categoria||'') + '">' + iconHtml + '</div>' +
       '<div class="item-main">' +
@@ -2073,9 +2197,7 @@
     var mc   = splitModel(o.modelo);
     var cond = (o.condicao||'').trim();
     var cls  = cond.toLowerCase() === 'novo' ? 'novo' : 'usado';
-    var heroHtml = o.foto_url
-      ? '<img src="'+esc(o.foto_url)+'" alt="" loading="lazy">'
-      : categoryIcon(o.categoria);
+    var heroHtml = imgThumb(o, 80, 80);
     return '<div class="grid-card">' +
       '<div class="gc-hero cat-' + (o.categoria||'') + '">' +
         heroHtml +
