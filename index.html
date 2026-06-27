@@ -1274,7 +1274,7 @@
   /* ── AUTH STATE ─────────────────────────────────────── */
   var authState = { user: null, isSubscriber: false };
 
-  var STRIPE_CHECKOUT_URL = 'https://buy.stripe.com/test_fZubJ061f47uaqX3C07ok00';
+  var STRIPE_CHECKOUT_URL = 'https://buy.stripe.com/fZubJ061f47uaqX3C07ok00';
 
   /* Rótulo de preço — fonte única usada no header e em qualquer CTA de assinatura */
   var PRICE_LABEL = 'R$ 100/mês';
@@ -1446,15 +1446,22 @@
     if (_lastFocus && _lastFocus.focus) { _lastFocus.focus(); _lastFocus = null; }
   }
   function goToCheckout() {
-    if (STRIPE_CHECKOUT_URL) {
-      var url = STRIPE_CHECKOUT_URL;
-      if (authState.user && authState.user.email) {
-        url += '?prefilled_email=' + encodeURIComponent(authState.user.email);
-      }
-      window.location.href = url;
-    } else {
-      alert('Link de pagamento em breve! Entre em contato pelo WhatsApp para assinar.');
+    // Exige conta/login antes de pagar — garante que o pagamento se vincule ao usuário
+    if (!authState.user || !authState.user.email) {
+      closeUpgradeModal();
+      openAuthModal('register');
+      var err = document.getElementById('reg-error');
+      if (err) { err.style.color = ''; err.textContent = 'Crie sua conta (ou entre) para assinar.'; }
+      return;
     }
+    if (!STRIPE_CHECKOUT_URL) {
+      alert('Link de pagamento em breve! Entre em contato pelo WhatsApp para assinar.');
+      return;
+    }
+    // prefilled_email TEM que ser o e-mail da conta logada (o webhook vincula por ele)
+    var sep = STRIPE_CHECKOUT_URL.indexOf('?') >= 0 ? '&' : '?';
+    window.location.href = STRIPE_CHECKOUT_URL + sep +
+      'prefilled_email=' + encodeURIComponent(authState.user.email);
   }
 
   /* ── CONFIG ────────────────────────────────────────── */
