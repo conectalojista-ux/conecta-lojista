@@ -694,22 +694,21 @@
     /* Sidebar body scrollável (dentro do drawer) */
     .sidebar-body { flex: 1; overflow-y: auto; }
 
-    /* Tablet / Mobile — sidebar vira drawer de baixo */
+    /* Tablet / Mobile — sidebar vira drawer lateral esquerdo */
     @media (max-width: 768px) {
-      /* Sidebar → bottom sheet com flex para footer fixo */
       .sidebar {
-        position: fixed; bottom: 0; left: 0; right: 0; top: auto !important;
-        width: 100% !important; max-height: 82vh;
-        border-radius: 20px 20px 0 0;
-        border-right: none; border-top: 1px solid var(--gray-border);
-        transform: translateY(100%);
+        position: fixed; top: 0; left: 0; bottom: 0; right: auto !important;
+        width: 82% !important; max-width: 360px; max-height: 100vh;
+        border-radius: 0 16px 16px 0;
+        border-right: 1px solid var(--gray-border); border-top: none;
+        transform: translateX(-100%);
         transition: transform .35s cubic-bezier(.32,.72,0,1);
         z-index: 300; overflow-y: hidden;
-        box-shadow: 0 -8px 40px rgba(0,0,0,.18);
+        box-shadow: 8px 0 40px rgba(0,0,0,.18);
         display: flex; flex-direction: column;
       }
-      .sidebar.open { transform: translateY(0); }
-      .sidebar-handle { display: block; cursor: pointer; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-handle { display: none; }
       .btn-filtros-mobile { display: flex; }
       .btn-sidebar-fechar { display: flex; }
       .sidebar-footer { display: block; }
@@ -947,7 +946,7 @@
       <svg class="ic-search" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
       </svg>
-      <input id="inp-search" type="text" placeholder="Buscar modelo, fornecedor, cidade…" aria-label="Buscar modelo, fornecedor ou cidade" autocomplete="nope" name="busca-oferta" oninput="onSearchInput()">
+      <input id="inp-search" type="search" placeholder="Buscar modelo, fornecedor, cidade…" aria-label="Buscar modelo, fornecedor ou cidade" autocomplete="new-password" name="busca-oferta" oninput="onSearchInput()">
     </div>
 
     <!-- AUTH AREA -->
@@ -1802,8 +1801,7 @@
     var total = globalStats ? globalStats.total : allData.length;
     var sup   = globalStats ? globalStats.fornecedores
                             : new Set(allData.map(function(o){ return o.fornecedor; }).filter(Boolean)).size;
-    var cit   = globalStats ? globalStats.cidades
-                            : new Set(allData.map(function(o){ return o.cidade; }).filter(Boolean)).size;
+    var cit   = new Set(allData.filter(function(o){ return o.cidade && /,\s*[A-Z]{2}$/.test(o.cidade); }).map(function(o){ return o.cidade; })).size;
     document.getElementById('hs-suppliers').textContent = (sup||0).toLocaleString('pt-BR');
     document.getElementById('hs-total').textContent     = (total||0).toLocaleString('pt-BR');
     document.getElementById('hs-cities').textContent    = (cit||0).toLocaleString('pt-BR');
@@ -1909,7 +1907,7 @@
       var cats = Array.from(document.querySelectorAll('.check-input:checked'))
         .map(function(e){ return e.dataset.cat; });
       if (cats.length !== 4) p.set('cat', cats.join(','));
-      var q   = document.getElementById('inp-search').value.trim();   if (q)   p.set('q', q);
+      var q   = document.getElementById('inp-search').value.trim();   if (q && !q.includes('@'))   p.set('q', q);
       var loc = document.getElementById('f-location').value.trim();   if (loc) p.set('loc', loc);
       var st  = document.getElementById('f-state').value;             if (st)  p.set('st', st);
       var ct  = document.getElementById('f-city').value;              if (ct)  p.set('ct', ct);
@@ -2505,32 +2503,29 @@
     (target || f[0] || m).focus();
   };
 
-  /* ── SWIPE PARA FECHAR O DRAWER NO MOBILE (#15) ──────── */
+  /* ── SWIPE PARA FECHAR O DRAWER LATERAL NO MOBILE ──────── */
   (function setupDrawerSwipe() {
     var sb = document.getElementById('sidebar');
     if (!sb) return;
-    var startY = 0, dy = 0, dragging = false;
-    function fromHandle(t) {
-      return t.closest && (t.closest('.sidebar-handle') || t.closest('.sidebar-header'));
-    }
+    var startX = 0, dx = 0, dragging = false;
     sb.addEventListener('touchstart', function(e) {
-      if (!sb.classList.contains('open') || !fromHandle(e.target)) return;
-      startY = e.touches[0].clientY; dy = 0; dragging = true;
+      if (!sb.classList.contains('open')) return;
+      startX = e.touches[0].clientX; dx = 0; dragging = true;
       sb.style.transition = 'none';
     }, { passive: true });
     sb.addEventListener('touchmove', function(e) {
       if (!dragging) return;
-      dy = e.touches[0].clientY - startY;
-      if (dy < 0) dy = 0;
-      sb.style.transform = 'translateY(' + dy + 'px)';
+      dx = e.touches[0].clientX - startX;
+      if (dx > 0) { sb.style.transform = 'translateX(0)'; return; }
+      sb.style.transform = 'translateX(' + dx + 'px)';
     }, { passive: true });
     sb.addEventListener('touchend', function() {
       if (!dragging) return;
       dragging = false;
       sb.style.transition = '';
       sb.style.transform = '';
-      if (dy > 90) closeSidebar();
-      dy = 0;
+      if (dx < -80) closeSidebar();
+      dx = 0;
     });
   })();
 
