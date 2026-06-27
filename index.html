@@ -947,7 +947,7 @@
       <svg class="ic-search" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
       </svg>
-      <input id="inp-search" type="text" placeholder="Buscar modelo, fornecedor, cidade…" aria-label="Buscar modelo, fornecedor ou cidade" autocomplete="off" oninput="onSearchInput()">
+      <input id="inp-search" type="text" placeholder="Buscar modelo, fornecedor, cidade…" aria-label="Buscar modelo, fornecedor ou cidade" autocomplete="nope" name="busca-oferta" oninput="onSearchInput()">
     </div>
 
     <!-- AUTH AREA -->
@@ -1871,6 +1871,7 @@
     allData.forEach(function(o) {
       var c = o.cidade || '';
       if (!c) return;
+      if (!/,\s*[A-Z]{2}$/.test(c)) return;
       if (!state || c.endsWith(state)) citySet.add(c);
     });
     cityEl.innerHTML = '<option value="">Todas as cidades</option>';
@@ -1938,7 +1939,7 @@
         el.checked = list.indexOf(el.dataset.cat) >= 0;
       });
     }
-    if (params.has('q'))   document.getElementById('inp-search').value = params.get('q');
+    if (params.has('q')) { var _q = params.get('q'); if (!_q.includes('@')) document.getElementById('inp-search').value = _q; }
     if (params.has('loc')) document.getElementById('f-location').value = params.get('loc');
     if (params.has('st'))  document.getElementById('f-state').value = params.get('st');
     repopulateCities();
