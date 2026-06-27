@@ -926,7 +926,69 @@
     @media (max-width:600px) {
       .btn-hdr-login { padding:6px 12px; }
     }
+
+    /* ── DARK MODE ───────────────────────────────────────── */
+    body.dark {
+      --black:         #f1f5f9;
+      --gray-dark:     #cbd5e1;
+      --gray:          #94a3b8;
+      --gray-mid:      #64748b;
+      --gray-light:    #1e293b;
+      --gray-lighter:  #0f172a;
+      --gray-border:   rgba(255,255,255,.09);
+      --white:         #1e293b;
+      --novo-bg:       #14532d; --novo-color:    #86efac;
+      --usado-bg:      #713f12; --usado-color:   #fde68a;
+      --lacrado-bg:    #1e3a5f; --lacrado-color: #93c5fd;
+      --vitrine-bg:    #3b0764; --vitrine-color: #d8b4fe;
+      --shadow-card:   0 1px 3px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.4);
+      --shadow-hover:  0 8px 24px rgba(0,0,0,.6), 0 2px 6px rgba(0,0,0,.4);
+    }
+    body.dark { background: #0f172a; color: #f1f5f9; }
+    body.dark .header { background: rgba(15,23,42,.92); border-bottom-color: rgba(255,255,255,.08); }
+    body.dark .header-search { background: #1e293b; border-color: rgba(255,255,255,.1); }
+    body.dark .header-search:focus-within { background: #1e293b; border-color: rgba(22,163,74,.4); }
+    body.dark .sidebar { background: #0f172a; border-right-color: rgba(255,255,255,.08); }
+    body.dark .sidebar-footer { background: #0f172a; border-top-color: rgba(255,255,255,.08); }
+    body.dark .controls-bar { background: #1e293b; border-color: rgba(255,255,255,.08); }
+    body.dark .ctrl-select { background: #0f172a; color: #f1f5f9; border-color: rgba(255,255,255,.1); }
+    body.dark .ctrl-select:focus { background: #0f172a; border-color: rgba(255,255,255,.25); }
+    body.dark .ctrl-view-btn { background: #1e293b; border-color: rgba(255,255,255,.08); }
+    body.dark .ctrl-view-btn.active { background: #0f172a; }
+    body.dark .list-item { background: #1e293b; border-color: rgba(255,255,255,.07); }
+    body.dark .list-item:hover { border-color: rgba(255,255,255,.15); }
+    body.dark .grid-card { background: #1e293b; border-color: rgba(255,255,255,.07); }
+    body.dark .grid-card:hover { border-color: rgba(255,255,255,.15); }
+    body.dark .modal-box { background: #1e293b; }
+    body.dark .auth-field input { background: #0f172a; color: #f1f5f9; border-color: rgba(255,255,255,.1); }
+    body.dark .auth-field input:focus { border-color: rgba(255,255,255,.3); }
+    body.dark .loc-input { background: #1e293b; border-color: rgba(255,255,255,.1); color: #f1f5f9; }
+    body.dark .loc-input:focus { background: #1e293b; border-color: rgba(255,255,255,.25); }
+    body.dark .loc-input::placeholder { color: #64748b; }
+    body.dark .filter-check-item,
+    body.dark .radio-item { color: #f1f5f9; }
+    body.dark .fcheck-count,
+    body.dark .sidebar-title { color: #f1f5f9; }
+    body.dark .sidebar-header { border-bottom-color: rgba(255,255,255,.08); }
+    body.dark .filter-label { color: #94a3b8; }
+    body.dark .filter-section { border-bottom-color: rgba(255,255,255,.08); }
+    body.dark .af-chip { background: #1e3a5f; color: #93c5fd; }
+    body.dark .btn-ver-resultados { background: var(--green-light); }
+
+    /* Toggle dark mode button */
+    .btn-dark-toggle {
+      display: flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;
+      background: var(--gray-light); border: none; cursor: pointer;
+      color: var(--black); transition: background .2s, color .2s;
+    }
+    .btn-dark-toggle:hover { opacity: .8; }
+    .icon-sun { display: none; }
+    body.dark .icon-moon { display: none; }
+    body.dark .icon-sun  { display: block; }
   </style>
+  <script>if(localStorage.getItem('darkMode')==='1')document.documentElement.classList.add('dark-init');</script>
+  <style>.dark-init{visibility:hidden}</style>
 </head>
 <body>
 
@@ -954,6 +1016,11 @@
       <button class="btn-hdr-login" onclick="openAuthModal('login')">Entrar</button>
       <button class="btn-hdr-assine" onclick="openUpgradeModal()">Assinar — R$&nbsp;100/mês</button>
     </div>
+
+    <button class="btn-dark-toggle" id="btn-dark-toggle" onclick="toggleDark()" title="Alternar modo escuro" aria-label="Alternar modo claro/escuro">
+      <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      <svg class="icon-sun"  width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
 
     <div class="header-stats">
       <div class="hstat">
@@ -2541,6 +2608,18 @@
       dx = 0;
     });
   })();
+
+  /* ── DARK MODE ──────────────────────────────────────── */
+  (function() {
+    var dark = localStorage.getItem('darkMode') === '1';
+    if (dark) document.body.classList.add('dark');
+    document.documentElement.classList.remove('dark-init');
+    document.body.style.visibility = '';
+  })();
+  window.toggleDark = function() {
+    var isDark = document.body.classList.toggle('dark');
+    localStorage.setItem('darkMode', isDark ? '1' : '0');
+  };
 
   /* ── HELPERS ────────────────────────────────────────── */
   function esc(s) {
