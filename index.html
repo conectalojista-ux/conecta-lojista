@@ -1581,22 +1581,39 @@
       .map(function(el){ return el.dataset.cat; });
     var base = cats.length ? allData.filter(function(o){ return cats.indexOf(o.categoria)>=0; }) : allData;
 
-    var mc={}, cc={}, ac={};
+    // Nível 1 — modelo: opções baseadas só na categoria
+    var mc = {};
     base.forEach(function(o) {
-      var sp = splitModel(o.modelo);
-      var mn = sp.name;
-      if (mn && mn!=='—') mc[mn]=(mc[mn]||0)+1;
-      if (sp.cap) ac[sp.cap]=(ac[sp.cap]||0)+1;
-      var cor = (o.cor||'').trim();
-      if (cor) {
-        var t = cor.charAt(0).toUpperCase()+cor.slice(1).toLowerCase();
-        cc[t]=(cc[t]||0)+1;
-      }
+      var mn = splitModel(o.modelo).name; if (mn && mn!=='—') mc[mn]=(mc[mn]||0)+1;
     });
-
     _modList = sortModelNames(Object.keys(mc));
     _modCounts = mc;
+
+    // Nível 2 — cor: opções baseadas em categoria + modelos selecionados
+    var afterMod = selModelos.size
+      ? base.filter(function(o){ return selModelos.has(splitModel(o.modelo).name); })
+      : base;
+    var cc = {};
+    afterMod.forEach(function(o) {
+      var cor = (o.cor||'').trim(); if (!cor) return;
+      var t = cor.charAt(0).toUpperCase()+cor.slice(1).toLowerCase();
+      cc[t]=(cc[t]||0)+1;
+    });
     _corList = Object.keys(cc).sort(function(a,b){ return cc[b]-cc[a]; });
+
+    // Nível 3 — armazenamento: opções baseadas em categoria + modelo + cor
+    var afterCor = selCores.size
+      ? afterMod.filter(function(o){
+          var cor = (o.cor||'').trim();
+          var t = cor.charAt(0).toUpperCase()+cor.slice(1).toLowerCase();
+          return selCores.has(t);
+        })
+      : afterMod;
+    var ac = {};
+    afterCor.forEach(function(o) {
+      var cap = splitModel(o.modelo).cap; if (!cap) return;
+      ac[cap]=(ac[cap]||0)+1;
+    });
     _armList = Object.keys(ac).sort(function(a,b){
       return (parseInt(a)*(a.indexOf('TB')>=0?1024:1))-(parseInt(b)*(b.indexOf('TB')>=0?1024:1));
     });
@@ -1668,9 +1685,9 @@
   window.closeUpgradeModal= closeUpgradeModal;
   window.goToCheckout     = goToCheckout;
 
-  window.onCatChg = function() { selModelos.clear(); showAllMod=false; populateDynamicFilters(); applyAndRender(); };
-  window.onModeloChg = function(el) { var m=el.dataset.modelo; if(el.checked) selModelos.add(m); else selModelos.delete(m); applyAndRender(); };
-  window.onCorClick = function(cor) { if(selCores.has(cor)) selCores.delete(cor); else selCores.add(cor); renderCorList(); applyAndRender(); };
+  window.onCatChg = function() { selModelos.clear(); selCores.clear(); selStorages.clear(); showAllMod=false; showAllArm=false; populateDynamicFilters(); applyAndRender(); };
+  window.onModeloChg = function(el) { var m=el.dataset.modelo; if(el.checked) selModelos.add(m); else selModelos.delete(m); selCores.clear(); selStorages.clear(); showAllArm=false; populateDynamicFilters(); applyAndRender(); };
+  window.onCorClick = function(cor) { if(selCores.has(cor)) selCores.delete(cor); else selCores.add(cor); selStorages.clear(); populateDynamicFilters(); applyAndRender(); };
   window.onArmChg = function(el) { var a=el.dataset.arm; if(el.checked) selStorages.add(a); else selStorages.delete(a); applyAndRender(); };
   window.toggleVerMais = function(type) {
     if (type==='modelo') { showAllMod=!showAllMod; renderModeloList(); }
