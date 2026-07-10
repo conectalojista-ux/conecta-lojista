@@ -2468,18 +2468,18 @@
     return match ? { name: match[1].trim(), cap: match[2].trim().toUpperCase() } : { name: m||'—', cap: null };
   }
 
-  function categoryIcon(cat) {
-    var icons = { iphone:'📱', ipad:'📟', macbook:'💻', watch:'⌚' };
-    return icons[cat] || '📦';
-  }
-
-  /* Miniatura com dimensões (evita CLS) e fallback p/ emoji se a imagem falhar (#19) */
+  /* Miniatura com dimensões (evita CLS). Sem foto real (ausente ou o
+     placeholder "sem_imagem.png" do buskaphone) ou erro de carregamento:
+     cai pra logo da Conecta Lojista em vez do ícone genérico. */
+  var NO_PHOTO_IMG = 'assets/logoc.png';
+  var NO_PHOTO_STYLE = 'object-fit:contain;padding:8px;opacity:.5';
   function imgThumb(o, w, h) {
-    var emoji = categoryIcon(o.categoria);
-    if (!o.foto_url) return emoji;
-    return '<img src="' + esc(o.foto_url) + '" alt="" width="' + w + '" height="' + h + '" ' +
+    var semFoto = !o.foto_url || /sem_imagem/i.test(o.foto_url);
+    var src = semFoto ? NO_PHOTO_IMG : o.foto_url;
+    var style = semFoto ? ' style="' + NO_PHOTO_STYLE + '"' : '';
+    return '<img src="' + esc(src) + '" alt=""' + style + ' width="' + w + '" height="' + h + '" ' +
       'loading="lazy" decoding="async" ' +
-      'onerror="this.style.display=\'none\';this.parentNode.insertAdjacentText(\'beforeend\',\'' + emoji + '\')">';
+      'onerror="this.onerror=null;this.src=\'' + NO_PHOTO_IMG + '\';this.style.cssText=\'' + NO_PHOTO_STYLE + '\';">';
   }
 
   /* ── WhatsApp com mensagem pré-preenchida ─────────────── */
