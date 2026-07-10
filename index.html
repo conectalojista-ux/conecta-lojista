@@ -1081,12 +1081,12 @@
       </div>
     </a>
 
-    <div class="header-search">
+    <form class="header-search" autocomplete="off" onsubmit="return false">
       <svg class="ic-search" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
       </svg>
-      <input id="inp-search" type="text" placeholder="Buscar modelo, fornecedor, cidade…" aria-label="Buscar modelo, fornecedor ou cidade" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" name="busca-oferta" oninput="onSearchInput()">
-    </div>
+      <input id="inp-search" type="search" placeholder="Buscar modelo, fornecedor, cidade…" aria-label="Buscar modelo, fornecedor ou cidade" autocomplete="off" role="searchbox" readonly onfocus="this.removeAttribute('readonly')" name="q-catalogo" data-lpignore="true" data-1p-ignore data-form-type="other" oninput="onSearchInput()">
+    </form>
 
     <!-- AUTH AREA -->
     <div class="header-auth" id="header-auth">
@@ -1147,10 +1147,12 @@
 
   <div id="auth-login">
     <p class="modal-sub">Acesse sua conta Conecta Lojista</p>
-    <div class="auth-field"><label>E-mail</label><input type="email" id="login-email" placeholder="seu@email.com"></div>
-    <div class="auth-field"><label>Senha</label><input type="password" id="login-pass" placeholder="••••••••"></div>
-    <div class="auth-error" id="login-error"></div>
-    <button class="btn-auth-submit" onclick="doLogin()">Entrar</button>
+    <form id="form-login" autocomplete="on" onsubmit="event.preventDefault(); doLogin();">
+      <div class="auth-field"><label>E-mail</label><input type="email" id="login-email" placeholder="seu@email.com" autocomplete="username"></div>
+      <div class="auth-field"><label>Senha</label><input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"></div>
+      <div class="auth-error" id="login-error"></div>
+      <button class="btn-auth-submit" type="submit">Entrar</button>
+    </form>
     <p class="auth-link"><a href="#" onclick="doForgotPassword();return false">Esqueci minha senha</a></p>
     <p class="auth-link">Não tem conta? <a href="#" onclick="switchTab('register');return false">Criar conta</a></p>
   </div>
@@ -1158,15 +1160,17 @@
   <div id="auth-register" style="display:none">
     <div id="reg-form">
       <p class="modal-sub">Crie sua conta — assine depois para ter acesso completo</p>
-      <div class="auth-field"><label>E-mail</label><input type="email" id="reg-email" placeholder="seu@email.com"></div>
-      <div class="auth-field"><label>WhatsApp (com DDD)</label><input type="tel" id="reg-phone" placeholder="(11) 99999-9999" inputmode="tel" autocomplete="tel"></div>
-      <div class="auth-field"><label>Senha</label><input type="password" id="reg-pass" placeholder="mínimo 6 caracteres"></div>
-      <label class="auth-consent">
-        <input type="checkbox" id="reg-consent">
-        <span>Concordo em receber contato e novidades da Conecta Lojista por WhatsApp e e-mail, conforme a Política de Privacidade.</span>
-      </label>
-      <div class="auth-error" id="reg-error"></div>
-      <button class="btn-auth-submit" id="btn-register" onclick="doRegister()">Criar conta</button>
+      <form id="form-register" autocomplete="on" onsubmit="event.preventDefault(); doRegister();">
+        <div class="auth-field"><label>E-mail</label><input type="email" id="reg-email" placeholder="seu@email.com" autocomplete="username"></div>
+        <div class="auth-field"><label>WhatsApp (com DDD)</label><input type="tel" id="reg-phone" placeholder="(11) 99999-9999" inputmode="tel" autocomplete="tel"></div>
+        <div class="auth-field"><label>Senha</label><input type="password" id="reg-pass" placeholder="mínimo 6 caracteres" autocomplete="new-password"></div>
+        <label class="auth-consent">
+          <input type="checkbox" id="reg-consent">
+          <span>Concordo em receber contato e novidades da Conecta Lojista por WhatsApp e e-mail, conforme a Política de Privacidade.</span>
+        </label>
+        <div class="auth-error" id="reg-error"></div>
+        <button class="btn-auth-submit" id="btn-register" type="submit">Criar conta</button>
+      </form>
       <p class="auth-link">Já tem conta? <a href="#" onclick="switchTab('login');return false">Entrar</a></p>
     </div>
     <div id="reg-success" style="display:none;text-align:center;padding:8px 0 4px">
