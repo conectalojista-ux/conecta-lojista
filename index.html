@@ -1070,6 +1070,13 @@
 </head>
 <body>
 
+<!-- Campos-isca: absorvem o autofill de usuário/senha do navegador para que
+     ele não tente preencher a barra de busca com o e-mail salvo. Não removam. -->
+<div style="position:absolute; top:0; left:-9999px; width:1px; height:1px; overflow:hidden;" aria-hidden="true">
+  <input type="text" name="username" autocomplete="username" tabindex="-1">
+  <input type="password" name="password" autocomplete="current-password" tabindex="-1">
+</div>
+
 <!-- HEADER -->
 <header class="header">
   <div class="header-inner">
