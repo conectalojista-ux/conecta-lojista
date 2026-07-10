@@ -2487,11 +2487,11 @@
     if (!o.telefone) return null;
     var msg =
       'Olá! Vi na *Conecta Lojista* e tenho interesse:\n\n' +
-      '📱 *' + (o.modelo||'') + '*\n' +
-      '💰 Preço: *' + (o.valor||'') + '*\n' +
-      '📦 Condição: ' + (o.condicao||'') + '\n' +
-      (o.cor ? '🎨 Cor: ' + o.cor + '\n' : '') +
-      (o.cidade ? '📍 ' + o.cidade + '\n' : '') +
+      '★ *' + (o.modelo||'') + '*\n' +
+      '• Preço: *' + (o.valor||'') + '*\n' +
+      '• Condição: ' + (o.condicao||'') + '\n' +
+      (o.cor ? '• Cor: ' + o.cor + '\n' : '') +
+      (o.cidade ? '• ' + o.cidade + '\n' : '') +
       '\nPoderia me passar mais detalhes?';
     return 'https://wa.me/' + o.telefone + '?text=' + encodeURIComponent(msg);
   }
