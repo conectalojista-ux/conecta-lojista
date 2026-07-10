@@ -83,14 +83,15 @@
       display: flex; align-items: center; gap: 16px;
     }
 
-    .logo-link { display: flex; align-items: center; flex-shrink: 0; text-decoration: none; }
-    .logo-link img { height: 46px; width: auto; display: block; }
+    .logo-link { display: flex; align-items: center; gap: 10px; flex-shrink: 0; text-decoration: none; }
+    .logo-link img { height: 38px; width: auto; display: block; }
     .logo-text-fallback {
-      display: none; flex-direction: column; line-height: 1.1;
+      display: flex; flex-direction: column; line-height: 1.15;
     }
-    .logo-text-fallback .t1 { font-size: 16px; font-weight: 800; color: var(--black); }
+    .logo-text-fallback .t1 { font-size: 15px; font-weight: 800; color: var(--black); white-space: nowrap; }
     .logo-text-fallback .t1 em { color: var(--green); font-style: normal; }
-    .logo-text-fallback .t2 { font-size: 9px; color: var(--gray); letter-spacing: .07em; text-transform: uppercase; }
+    .logo-text-fallback .t2 { font-size: 10px; color: var(--gray); letter-spacing: .01em; white-space: nowrap; }
+    @media (max-width: 480px) { .logo-text-fallback .t2 { display: none; } }
 
     .header-search {
       flex: 1; max-width: 480px;
@@ -1043,11 +1044,10 @@
 <header class="header">
   <div class="header-inner">
     <a href="#" class="logo-link">
-      <img src="assets/logo.png" alt="Conecta Lojista"
-           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <img src="assets/logoc.png" alt="Conecta Lojista">
       <div class="logo-text-fallback">
-        <span class="t1">CONECTA <em>LOJISTA</em></span>
-        <span class="t2">Conectando lojistas às melhores oportunidades</span>
+        <span class="t1">Conecta <em>Lojista</em></span>
+        <span class="t2">Compre melhor e venda mais.</span>
       </div>
     </a>
 
