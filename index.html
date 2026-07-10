@@ -1207,7 +1207,7 @@
     </div>
 
     <!-- Faixa de Preço -->
-    <div class="filter-section">
+    <div class="filter-section" id="filter-price-section">
       <div class="filter-label">Faixa de Preço</div>
       <div class="price-range-wrap">
         <div class="price-range-values">
@@ -1354,6 +1354,8 @@
         '<button class="btn-hdr-login" onclick="openAuthModal(\'login\')">Entrar</button>' +
         '<button class="btn-hdr-assine" onclick="openUpgradeModal()">Assinar — ' + PRICE_LABEL + '</button>';
     }
+    var priceFilter = document.getElementById('filter-price-section');
+    if (priceFilter) priceFilter.style.display = authState.isSubscriber ? '' : 'none';
   }
 
   async function checkSubscription(userId) {
@@ -2443,6 +2445,11 @@
     return esc(o.cidade||'');
   }
 
+  function priceDisplay(o) {
+    if (!authState.isSubscriber) return '<span class="supplier-masked">R$ •••••</span>';
+    return esc(o.valor||'—');
+  }
+
   function condChip(cond) {
     if (!cond) return '';
     var cls = cond.toLowerCase() === 'novo' ? 'novo' : 'usado';
@@ -2470,7 +2477,7 @@
         (o.data_atualizacao ? '<div class="supplier-date">atualizado '+esc(o.data_atualizacao)+'</div>' : '') +
       '</div>' +
       '<div class="item-price-wrap">' +
-        '<div class="item-price">' + esc(o.valor||'—') + '</div>' +
+        '<div class="item-price">' + priceDisplay(o) + '</div>' +
       '</div>' +
       '<div class="item-action">' + favBtn(o) + waButton(o, false) + '</div>' +
     '</div>';
@@ -2495,7 +2502,7 @@
         '</div>' +
         '<div>' +
           '<div class="gc-price-label">Preço atacado</div>' +
-          '<div class="gc-price">' + esc(o.valor||'—') + '</div>' +
+          '<div class="gc-price">' + priceDisplay(o) + '</div>' +
         '</div>' +
         '<div class="gc-supplier">' +
           '<strong>' + supplierName(o) + '</strong>' +
