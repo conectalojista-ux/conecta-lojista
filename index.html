@@ -1474,6 +1474,12 @@
 
     supabase.auth.onAuthStateChange(async function(_event, session) {
       if (_event === 'PASSWORD_RECOVERY') { handlePasswordRecovery(); }
+      // TOKEN_REFRESHED dispara sozinho em segundo plano (ex: ao voltar do
+      // app trocado no celular) sem mudar usuário/assinatura — nesse caso
+      // não há motivo pra redesenhar a lista inteira (evita trocar o DOM
+      // debaixo do dedo do usuário no meio de um toque).
+      var prevUserId = authState.user ? authState.user.id : null;
+      var prevSubscriber = authState.isSubscriber;
       if (session) {
         authState.user = session.user;
         authState.isSubscriber = await checkSubscription(session.user.id);
@@ -1482,6 +1488,9 @@
         authState.isSubscriber = false;
       }
       renderHeaderAuth();
+      var userChanged = prevUserId !== (authState.user ? authState.user.id : null);
+      var subscriberChanged = prevSubscriber !== authState.isSubscriber;
+      if (!userChanged && !subscriberChanged) return;
       // recarrega/limpa os contatos conforme o novo estado e re-renderiza
       if (allData.length) { await loadContacts(); }
       render();
@@ -1653,15 +1662,19 @@
     var el = document.getElementById('fav-count');
     if (el) el.textContent = favs.size;
   }
-  window.toggleFav = function(id, btn) {
+  window.toggleFav = function(id) {
     id = String(id);
     if (favs.has(id)) favs.delete(id); else favs.add(id);
     saveFavs();
     var active = favs.has(id);
-    if (btn) {
+    /* Busca os botões atuais na tela (nunca confia numa referência de nó
+       capturada no clique — a lista pode ter sido redesenhada entre o
+       toque e o clique, ex: quando o Supabase renova a sessão em segundo
+       plano, deixando o botão antigo "orfão" e o clique sem efeito visual). */
+    document.querySelectorAll('[data-fav-id="' + CSS.escape(id) + '"]').forEach(function(btn) {
       btn.classList.toggle('active', active);
       btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-    }
+    });
     updateFavCount();
     if (favOnly) applyAndRender();   // recomputa só quando o filtro de favoritos está ativo
   };
@@ -2521,13 +2534,15 @@
 
   function favBtn(o) {
     var active = isFav(o) ? ' active' : '';
-    return '<button class="btn-fav' + active + '" aria-label="Favoritar oferta" aria-pressed="' +
-      (isFav(o) ? 'true' : 'false') + '" onclick="toggleFav(\'' + esc(String(o.id)) + '\',this)">★</button>';
+    var id = esc(String(o.id));
+    return '<button class="btn-fav' + active + '" data-fav-id="' + id + '" aria-label="Favoritar oferta" aria-pressed="' +
+      (isFav(o) ? 'true' : 'false') + '" onclick="toggleFav(\'' + id + '\')">★</button>';
   }
   function favBtnGrid(o) {
     var active = isFav(o) ? ' active' : '';
-    return '<button class="gc-fav' + active + '" aria-label="Favoritar oferta" aria-pressed="' +
-      (isFav(o) ? 'true' : 'false') + '" onclick="toggleFav(\'' + esc(String(o.id)) + '\',this)">★</button>';
+    var id = esc(String(o.id));
+    return '<button class="gc-fav' + active + '" data-fav-id="' + id + '" aria-label="Favoritar oferta" aria-pressed="' +
+      (isFav(o) ? 'true' : 'false') + '" onclick="toggleFav(\'' + id + '\')">★</button>';
   }
 
   function supplierName(o) {
