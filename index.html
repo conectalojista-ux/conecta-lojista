@@ -477,8 +477,9 @@
 
     .item-supplier { width: 190px; flex-shrink: 0; }
     .item-supplier-mobile { display: none; font-size: 11px; color: var(--gray); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-supplier-mobile-name { color: var(--black); font-weight: 600; font-size: 12px; }
     .supplier-name {
-      font-size: 12.5px; font-weight: 600; color: var(--gray-dark);
+      font-size: 12.5px; font-weight: 600; color: var(--black);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .supplier-city {
@@ -2597,7 +2598,7 @@
       '<div class="item-main">' +
         '<div class="item-name">' + esc(mc.name) + '</div>' +
         '<div class="item-chips">' + chips + '</div>' +
-        '<div class="item-supplier-mobile">' + supplierName(o) + (o.cidade ? ' · ' + supplierCity(o) : '') + '</div>' +
+        '<div class="item-supplier-mobile"><span class="item-supplier-mobile-name">' + supplierName(o) + '</span>' + (o.cidade ? ' · ' + supplierCity(o) : '') + '</div>' +
       '</div>' +
       '<div class="item-supplier">' +
         '<div class="supplier-name">' + supplierName(o) + '</div>' +
