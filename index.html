@@ -1931,7 +1931,7 @@
      Guarda só os dados PÚBLICOS (contatos nunca são cacheados).
      v2: invalida caches antigos que continham telefone. */
   var CACHE_KEY = 'cl_ofertas_v2';
-  var CACHE_TTL = 6 * 60 * 60 * 1000;
+  var CACHE_TTL = 60 * 60 * 1000; // 1h — alinhado ao ritmo do scraper (roda a cada 1-3h)
   async function loadAllCached() {
     try {
       var raw = localStorage.getItem(CACHE_KEY);
@@ -2745,20 +2745,34 @@
   /* ── AUTO-UPDATE ────────────────────────────────────────
      Uma aba aberta há dias não busca sozinha o HTML/JS novo
      publicado no site (isso já causou bug real: usuário via a
-     versão antiga do botão do WhatsApp mesmo com o site corrigido).
-     Verifica o Last-Modified do próprio index.html sempre que a aba
-     volta a ficar visível (ex: usuário volta do WhatsApp/outro app)
-     e recarrega sozinho se detectar versão mais nova — mas nunca
-     interrompe um login/cadastro/checkout em andamento. */
+     versão antiga do botão do WhatsApp mesmo com o site corrigido)
+     nem o catálogo de ofertas mais recente do scraper.
+     Sempre que a aba volta a ficar visível (ex: usuário volta do
+     WhatsApp/outro app) ou a cada 15min com a aba aberta, verifica
+     (1) se o index.html publicado mudou, e (2) se o cache local de
+     ofertas passou do TTL — recarrega sozinho se qualquer um dos
+     dois estiver desatualizado, mas nunca interrompe um
+     login/cadastro/checkout em andamento. */
   (function() {
     var knownLastModified = null;
+    function ofertasCacheIsStale() {
+      try {
+        var raw = localStorage.getItem(CACHE_KEY);
+        if (!raw) return false; // sem cache ainda = primeiro load cuida disso sozinho
+        var obj = JSON.parse(raw);
+        return !obj || !obj.ts || (Date.now() - obj.ts >= CACHE_TTL);
+      } catch (e) { return false; }
+    }
     function checkVersion() {
       fetch(location.pathname, { cache: 'no-store', method: 'HEAD' })
         .then(function(res) {
           var lm = res.headers.get('last-modified');
-          if (!lm) return;
-          if (knownLastModified === null) { knownLastModified = lm; return; }
-          if (lm !== knownLastModified) {
+          var codeChanged = false;
+          if (lm) {
+            if (knownLastModified === null) { knownLastModified = lm; }
+            else if (lm !== knownLastModified) { codeChanged = true; }
+          }
+          if (codeChanged || ofertasCacheIsStale()) {
             if (document.querySelector('.modal-overlay.open')) return; // tenta de novo na próxima checagem
             location.reload();
           }
