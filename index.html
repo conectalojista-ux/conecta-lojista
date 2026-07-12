@@ -2755,6 +2755,12 @@
      login/cadastro/checkout em andamento. */
   (function() {
     var knownLastModified = null;
+    var initialCheckDone = false; // 1º check da aba nunca força reload por dado velho:
+                                   // o carregamento inicial ainda pode estar buscando
+                                   // dado novo, e "cache antigo" reagiria a isso na
+                                   // hora, recarregando de novo antes do fetch
+                                   // terminar — loop infinito de reload.
+    var MIN_RELOAD_GAP = 5 * 60 * 1000; // trava extra: nunca recarrega 2x em <5min
     function ofertasCacheIsStale() {
       try {
         var raw = localStorage.getItem(CACHE_KEY);
@@ -2762,6 +2768,12 @@
         var obj = JSON.parse(raw);
         return !obj || !obj.ts || (Date.now() - obj.ts >= CACHE_TTL);
       } catch (e) { return false; }
+    }
+    function canReloadNow() {
+      try {
+        var last = +sessionStorage.getItem('cl_last_auto_reload') || 0;
+        return (Date.now() - last) >= MIN_RELOAD_GAP;
+      } catch (e) { return true; }
     }
     function checkVersion() {
       fetch(location.pathname, { cache: 'no-store', method: 'HEAD' })
@@ -2772,8 +2784,11 @@
             if (knownLastModified === null) { knownLastModified = lm; }
             else if (lm !== knownLastModified) { codeChanged = true; }
           }
-          if (codeChanged || ofertasCacheIsStale()) {
+          var dataStale = initialCheckDone && ofertasCacheIsStale();
+          initialCheckDone = true;
+          if ((codeChanged || dataStale) && canReloadNow()) {
             if (document.querySelector('.modal-overlay.open')) return; // tenta de novo na próxima checagem
+            try { sessionStorage.setItem('cl_last_auto_reload', String(Date.now())); } catch (e) {}
             location.reload();
           }
         })
