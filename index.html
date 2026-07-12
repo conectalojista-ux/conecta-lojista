@@ -2742,6 +2742,36 @@
     localStorage.setItem('darkMode', isDark ? '1' : '0');
   };
 
+  /* ── AUTO-UPDATE ────────────────────────────────────────
+     Uma aba aberta há dias não busca sozinha o HTML/JS novo
+     publicado no site (isso já causou bug real: usuário via a
+     versão antiga do botão do WhatsApp mesmo com o site corrigido).
+     Verifica o Last-Modified do próprio index.html sempre que a aba
+     volta a ficar visível (ex: usuário volta do WhatsApp/outro app)
+     e recarrega sozinho se detectar versão mais nova — mas nunca
+     interrompe um login/cadastro/checkout em andamento. */
+  (function() {
+    var knownLastModified = null;
+    function checkVersion() {
+      fetch(location.pathname, { cache: 'no-store', method: 'HEAD' })
+        .then(function(res) {
+          var lm = res.headers.get('last-modified');
+          if (!lm) return;
+          if (knownLastModified === null) { knownLastModified = lm; return; }
+          if (lm !== knownLastModified) {
+            if (document.querySelector('.modal-overlay.open')) return; // tenta de novo na próxima checagem
+            location.reload();
+          }
+        })
+        .catch(function() { /* offline ou bloqueado — ignora */ });
+    }
+    checkVersion();
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible') checkVersion();
+    });
+    setInterval(checkVersion, 15 * 60 * 1000);
+  })();
+
   /* ── HELPERS ────────────────────────────────────────── */
   function esc(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
