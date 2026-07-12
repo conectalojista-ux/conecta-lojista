@@ -1907,15 +1907,30 @@
      Mescla nos objetos de allData por id; limpa quando não-assinante. */
   var _contacts = {};
   async function loadContacts() {
-    _contacts = {};
-    if (authState.isSubscriber) {
+    if (!authState.isSubscriber) {
+      _contacts = {};
+      applyContacts();
+      return;
+    }
+    // Busca com 1 nova tentativa antes de desistir. Se as duas falharem
+    // (rede instável, soluço do Supabase), MANTÉM o contato anterior em vez
+    // de apagar — um assinante pagando em dia nunca deve perder o botão do
+    // WhatsApp de todos os fornecedores por causa de uma falha passageira
+    // de rede.
+    var fetched = null;
+    for (var attempt = 0; attempt < 2 && fetched === null; attempt++) {
       try {
         var res = await supabase.rpc('ofertas_contatos');
         if (!res.error && Array.isArray(res.data)) {
-          res.data.forEach(function(c){ _contacts[String(c.id)] = c; });
+          fetched = {};
+          res.data.forEach(function(c){ fetched[String(c.id)] = c; });
         }
-      } catch (e) { /* ignora */ }
+      } catch (e) { /* tenta de novo (ou desiste, na 2ª volta) */ }
+      if (fetched === null && attempt === 0) {
+        await new Promise(function(resolve){ setTimeout(resolve, 1200); });
+      }
     }
+    if (fetched !== null) _contacts = fetched;
     applyContacts();
   }
   function applyContacts() {
