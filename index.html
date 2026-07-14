@@ -1975,7 +1975,7 @@
     if (!data || data.length === 0) {
       document.getElementById('results-list').innerHTML =
         '<div class="empty-state"><h3>Sem dados no banco</h3>' +
-        '<p>Execute <code>python import_supabase.py</code> para importar as ofertas.</p></div>';
+        '<p>Execute <code>python scraper_all.py</code> para recarregar o catálogo completo.</p></div>';
       return;
     }
     allData = data;
