@@ -100,6 +100,17 @@
       <p>Essa conta não está cadastrada como fornecedor no Conecta Lojista. Se você acha que isso é um erro, fala com quem te passou o acesso.</p>
       <button class="btn-secondary" onclick="doLogout()">Sair</button>
     </div>
+
+    <div id="view-setpassword" style="display:none">
+      <h1>Defina sua senha</h1>
+      <p class="sub">Essa é a primeira vez que você entra — cria uma senha pra usar daqui pra frente.</p>
+      <label>Nova senha</label>
+      <input type="password" id="nova-senha" placeholder="mínimo 6 caracteres" autocomplete="new-password">
+      <label>Confirme a senha</label>
+      <input type="password" id="confirma-senha" placeholder="repete a senha" autocomplete="new-password">
+      <div class="err" id="err-senha"></div>
+      <button id="btn-definir-senha" onclick="doSetPassword()">Salvar senha e entrar</button>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -110,7 +121,7 @@
     var supabase = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
     function show(id) {
-      ['view-checking', 'view-login', 'view-welcome', 'view-denied'].forEach(function(v) {
+      ['view-checking', 'view-login', 'view-welcome', 'view-denied', 'view-setpassword'].forEach(function(v) {
         document.getElementById(v).style.display = (v === id) ? 'block' : 'none';
       });
     }
@@ -147,14 +158,30 @@
       show('view-login');
     };
 
-    (async function() {
-      var { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        await checkSupplier(session.user);
-      } else {
-        show('view-login');
-      }
-    })();
+    window.doSetPassword = async function() {
+      var nova = document.getElementById('nova-senha').value;
+      var conf = document.getElementById('confirma-senha').value;
+      var err = document.getElementById('err-senha');
+      var btn = document.getElementById('btn-definir-senha');
+      err.textContent = '';
+      if (!nova || nova.length < 6) { err.textContent = 'A senha precisa ter ao menos 6 caracteres.'; return; }
+      if (nova !== conf) { err.textContent = 'As senhas não são iguais.'; return; }
+      btn.disabled = true; btn.textContent = 'Salvando…';
+      var { data, error } = await supabase.auth.updateUser({ password: nova });
+      btn.disabled = false; btn.textContent = 'Salvar senha e entrar';
+      if (error) { err.textContent = error.message; return; }
+      show('view-checking');
+      await checkSupplier(data.user);
+    };
+
+    // Fonte única de verdade: o supabase-js dispara este callback imediatamente
+    // com o estado atual da sessão (e de novo a cada mudança), então não
+    // precisa combinar com getSession() separado — evita corrida entre os dois.
+    supabase.auth.onAuthStateChange(function(event, session) {
+      if (event === 'PASSWORD_RECOVERY') { show('view-setpassword'); return; }
+      if (session) { checkSupplier(session.user); }
+      else { show('view-login'); }
+    });
   })();
   </script>
 </body>
