@@ -1516,13 +1516,24 @@
     });
   }
 
-  /* Usuário voltou pelo link de recuperação → define nova senha */
+  /* Usuário voltou pelo link de recuperação → define nova senha.
+     Se for conta de fornecedor (o link de recuperação sempre cai aqui no
+     site principal, não tem como mandar direto pro estoque.html), manda
+     ele pra lá depois de trocar a senha, em vez de deixar na área de
+     assinante que não é a dele. */
   async function handlePasswordRecovery() {
     var nova = window.prompt('Defina sua nova senha (mínimo 6 caracteres):');
     if (!nova) return;
     if (nova.length < 6) { alert('A senha precisa ter ao menos 6 caracteres.'); return; }
-    var { error } = await supabase.auth.updateUser({ password: nova });
-    alert(error ? ('Erro ao atualizar senha: ' + error.message) : 'Senha atualizada com sucesso!');
+    var { data, error } = await supabase.auth.updateUser({ password: nova });
+    if (error) { alert('Erro ao atualizar senha: ' + error.message); return; }
+    var sup = await supabase.from('suppliers').select('id').eq('id', data.user.id).maybeSingle();
+    if (sup.data) {
+      alert('Senha atualizada! Você vai ser levado pra área do fornecedor.');
+      window.location.href = 'estoque.html';
+      return;
+    }
+    alert('Senha atualizada com sucesso!');
   }
 
   /* ── AUTH MODAL ──────────────────────────────────────── */
