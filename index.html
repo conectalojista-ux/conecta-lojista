@@ -466,6 +466,8 @@
     .item-icon.cat-ipad    { background: linear-gradient(135deg,#e0faf0,#b8edd8); }
     .item-icon.cat-macbook { background: linear-gradient(135deg,#f0f0f5,#e0e0e8); }
     .item-icon.cat-watch   { background: linear-gradient(135deg,#fde8d8,#fbd0b0); }
+    .item-icon.cat-eletronicos { background: linear-gradient(135deg,#ede3ff,#d4c2ff); }
+    .item-icon.cat-acessorios  { background: linear-gradient(135deg,#fff0f3,#ffd6e0); }
 
     .item-main { flex: 1; min-width: 0; }
     .item-name {
@@ -555,6 +557,8 @@
     .gc-hero.cat-ipad    { background: linear-gradient(135deg,#d8faee,#a8e8cc); }
     .gc-hero.cat-macbook { background: linear-gradient(135deg,#ebebf0,#d5d5df); }
     .gc-hero.cat-watch   { background: linear-gradient(135deg,#fff0e0,#ffd8a8); }
+    .gc-hero.cat-eletronicos { background: linear-gradient(135deg,#ede3ff,#c9b3ff); }
+    .gc-hero.cat-acessorios  { background: linear-gradient(135deg,#ffe9ee,#ffc2d1); }
 
     .gc-cond-badge {
       position: absolute; top: 10px; right: 10px;
@@ -1282,6 +1286,20 @@
           </div>
           <span class="check-count" id="cc-watch">0</span>
         </label>
+        <label class="check-item">
+          <div class="check-left">
+            <input class="check-input" type="checkbox" data-cat="eletronicos" onchange="onCatChg()">
+            <span class="check-label">🎮 Eletrônicos</span>
+          </div>
+          <span class="check-count" id="cc-eletronicos">0</span>
+        </label>
+        <label class="check-item">
+          <div class="check-left">
+            <input class="check-input" type="checkbox" data-cat="acessorios" onchange="onCatChg()">
+            <span class="check-label">🔌 Acessórios</span>
+          </div>
+          <span class="check-count" id="cc-acessorios">0</span>
+        </label>
       </div>
     </div>
 
@@ -1797,7 +1815,7 @@
       : afterMod;
     var ac = {};
     afterCor.forEach(function(o) {
-      var cap = splitModel(o.modelo).cap; if (!cap) return;
+      var cap = variantOf(o); if (!cap) return;
       ac[cap]=(ac[cap]||0)+1;
     });
     _armList = Object.keys(ac).sort(function(a,b){
@@ -2003,7 +2021,7 @@
 
   /* ── COUNTS ─────────────────────────────────────────── */
   function populateCounts() {
-    var cats = { iphone: 0, ipad: 0, macbook: 0, watch: 0 };
+    var cats = { iphone: 0, ipad: 0, macbook: 0, watch: 0, eletronicos: 0, acessorios: 0 };
     allData.forEach(function(o) { if (cats[o.categoria] !== undefined) cats[o.categoria]++; });
     Object.keys(cats).forEach(function(k) {
       var el = document.getElementById('cc-' + k);
@@ -2122,7 +2140,7 @@
       var p = new URLSearchParams();
       var cats = Array.from(document.querySelectorAll('.check-input:checked'))
         .map(function(e){ return e.dataset.cat; });
-      if (cats.length !== 4) p.set('cat', cats.join(','));
+      if (cats.length !== TOTAL_CATS) p.set('cat', cats.join(','));
       var q   = document.getElementById('inp-search').value.trim();   if (q && !q.includes('@'))   p.set('q', q);
       var loc = document.getElementById('f-location').value.trim();   if (loc) p.set('loc', loc);
       var st  = document.getElementById('f-state').value;             if (st)  p.set('st', st);
@@ -2272,7 +2290,7 @@
 
     /* armazenamento */
     if (selStorages.size > 0) {
-      data = data.filter(function(o){ return selStorages.has(splitModel(o.modelo).cap); });
+      data = data.filter(function(o){ return selStorages.has(variantOf(o)); });
     }
 
     /* busca texto */
@@ -2381,13 +2399,14 @@
   };
 
   /* ── GREEN BAR: categoria selecionada ───────────────── */
-  var CAT_NAMES = { iphone:'iPhone', ipad:'iPad', macbook:'MacBook', watch:'Apple Watch' };
+  var CAT_NAMES = { iphone:'iPhone', ipad:'iPad', macbook:'MacBook', watch:'Apple Watch', eletronicos:'Eletrônicos', acessorios:'Acessórios' };
+  var TOTAL_CATS = Object.keys(CAT_NAMES).length;
   function updateCategoryBadge() {
     var el = document.getElementById('gb-cat');
     if (!el) return;
     var checked = Array.from(document.querySelectorAll('.check-input:checked'))
       .map(function(e){ return e.dataset.cat; });
-    el.textContent = (checked.length === 0 || checked.length === 4)
+    el.textContent = (checked.length === 0 || checked.length === TOTAL_CATS)
       ? 'Todas as categorias'
       : checked.map(function(c){ return CAT_NAMES[c] || c; }).join(', ');
   }
@@ -2513,6 +2532,9 @@
     var match = (m||'').match(/^(.*?)\s+(\d+\s*(?:GB|TB))$/i);
     return match ? { name: match[1].trim(), cap: match[2].trim().toUpperCase() } : { name: m||'—', cap: null };
   }
+  /* Armazenamento/variante: GB embutido no modelo (iPhone/iPad/etc.) ou o
+     campo variante solto (Eletrônicos/Acessórios: "USB-C", "1un", etc.) */
+  function variantOf(o) { return splitModel(o.modelo).cap || o.variante || null; }
 
   /* Miniatura com dimensões (evita CLS). Sem foto real (ausente ou o
      placeholder "sem_imagem.png" do buskaphone) ou erro de carregamento:
@@ -2596,6 +2618,7 @@
     var cond = (o.condicao||'').trim();
     var chips = condChip(cond);
     if (mc.cap) chips += '<span class="chip-storage">' + esc(mc.cap) + '</span>';
+    if (o.variante) chips += '<span class="chip-storage">' + esc(o.variante) + '</span>';
     if (o.cor)  chips += '<span class="chip-cor">' + esc(o.cor) + '</span>';
 
     var iconHtml = imgThumb(o, 38, 38);
@@ -2633,6 +2656,7 @@
         '<div class="gc-name">' + esc(mc.name) + '</div>' +
         '<div class="gc-specs">' +
           (mc.cap ? '<span class="chip-storage">'+esc(mc.cap)+'</span>' : '') +
+          (o.variante ? '<span class="chip-storage">'+esc(o.variante)+'</span>' : '') +
           (o.cor  ? '<span class="chip-cor">'+esc(o.cor)+'</span>'     : '') +
         '</div>' +
         '<div>' +
