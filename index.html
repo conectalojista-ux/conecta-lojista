@@ -1483,16 +1483,29 @@
     return active && notExpired;
   }
 
+  /* Conta de fornecedor nunca deve navegar o site de assinante — manda
+     direto pro estoque.html, não importa por onde ela entrou (login
+     normal, sessão já aberta, ou link de recuperação de senha). */
+  async function redirectIfSupplier(userId) {
+    try {
+      var res = await supabase.from('suppliers').select('id').eq('id', userId).maybeSingle();
+      if (res.data) { window.location.href = 'estoque.html'; return true; }
+    } catch (e) { /* ignora — se falhar, segue como usuário normal */ }
+    return false;
+  }
+
   async function initAuth() {
     var { data: { session } } = await supabase.auth.getSession();
     if (session) {
+      if (await redirectIfSupplier(session.user.id)) return;
       authState.user = session.user;
       authState.isSubscriber = await checkSubscription(session.user.id);
     }
     renderHeaderAuth();
 
     supabase.auth.onAuthStateChange(async function(_event, session) {
-      if (_event === 'PASSWORD_RECOVERY') { handlePasswordRecovery(); }
+      if (_event === 'PASSWORD_RECOVERY') { handlePasswordRecovery(); return; } // essa função já cuida do redirect, depois de definir a senha
+      if (session && await redirectIfSupplier(session.user.id)) return;
       // TOKEN_REFRESHED dispara sozinho em segundo plano (ex: ao voltar do
       // app trocado no celular) sem mudar usuário/assinatura — nesse caso
       // não há motivo pra redesenhar a lista inteira (evita trocar o DOM
