@@ -141,6 +141,17 @@
     }
     .gbar-item strong { color: #fff; font-weight: 600; }
     .gbar-sep { width: 1px; height: 14px; background: rgba(255,255,255,.2); }
+    .btn-refresh-data {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+      background: rgba(255,255,255,.12); border: none; cursor: pointer;
+      color: rgba(255,255,255,.8); transition: background .15s, transform .15s;
+      margin-left: -4px;
+    }
+    .btn-refresh-data:hover { background: rgba(255,255,255,.22); }
+    .btn-refresh-data:disabled { cursor: default; opacity: .6; }
+    .btn-refresh-data.spinning svg { animation: btn-refresh-spin .8s linear infinite; }
+    @keyframes btn-refresh-spin { to { transform: rotate(360deg); } }
     .gbar-category {
       margin-left: auto;
       background: rgba(255,255,255,.15);
@@ -1155,6 +1166,9 @@
     </div>
     <div class="gbar-sep"></div>
     <div class="gbar-item" id="gb-updated">Atualizado hoje</div>
+    <button class="btn-refresh-data" id="btn-refresh-data" onclick="forceRefresh()" title="Atualizar catálogo agora" aria-label="Atualizar catálogo agora">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+    </button>
     <div class="gbar-category" id="gb-cat">iPhone</div>
   </div>
 </div>
@@ -2013,6 +2027,27 @@
     } catch (e) { /* quota cheia — segue sem cache */ }
     return data;
   }
+
+  /* Botão "Atualizar agora": busca direto no Supabase (ignora qualquer
+     cache local), pra quando alguém suspeitar que está vendo dado velho
+     e não quiser depender de limpar cache/esperar a checagem automática. */
+  window.forceRefresh = async function() {
+    var btn = document.getElementById('btn-refresh-data');
+    if (btn) { btn.disabled = true; btn.classList.add('spinning'); }
+    try {
+      var data = await loadAll();
+      if (data && data.length) {
+        allData = data;
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: data })); } catch (e) {}
+        populateCounts();
+        populateDynamicFilters();
+        updateGlobalStats();
+        await loadContacts();
+        applyAndRender();
+      }
+    } catch (e) { /* rede falhou — mantém o que já estava na tela */ }
+    if (btn) { btn.disabled = false; btn.classList.remove('spinning'); }
+  };
 
   // Inicia auth e dados em paralelo; renderiza após ambos prontos
   Promise.all([
