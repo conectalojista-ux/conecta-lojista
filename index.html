@@ -140,6 +140,8 @@
       font-size: 12px; color: rgba(255,255,255,.75);
     }
     .gbar-item strong { color: #fff; font-weight: 600; }
+    .gbar-item.gb-warning#gb-updated { color: #fbbf24; font-weight: 600; }
+    .gbar-item.gb-error#gb-updated { color: #f87171; font-weight: 700; }
     .gbar-sep { width: 1px; height: 14px; background: rgba(255,255,255,.2); }
     .btn-refresh-data {
       display: inline-flex; align-items: center; justify-content: center;
@@ -1072,6 +1074,8 @@
     }
     body.dark .gbar-item strong { font-size: 20px; font-weight: 800; color: #fff; }
     body.dark .gbar-item svg { display: none; }
+    body.dark .gbar-item.gb-warning#gb-updated { color: #fbbf24; }
+    body.dark .gbar-item.gb-error#gb-updated { color: #f87171; }
     body.dark .gbar-sep { background: rgba(255,255,255,.1); height: 28px; margin: 0 2px; }
     body.dark .gbar-category { background: var(--green-bg); color: var(--green); }
     @media (max-width: 768px) {
@@ -2115,9 +2119,10 @@
     return null;
   }
 
-  function updateFreshness() {
-    var el = document.getElementById('gb-updated');
-    if (!el) return;
+  function freshnessFallback(el) {
+    // Fallback quando o RPC scraper_status_publica falhar ou não tiver linhas
+    // ainda: deriva a data a partir do próprio campo data_atualizacao das
+    // ofertas (menos confiável — é o que o buskaphone manda, não o scraper).
     var latest = null;
     allData.forEach(function(o){
       var d = parseUpdatedDate(o.data_atualizacao);
@@ -2133,6 +2138,76 @@
     } else {
       el.textContent = 'Atualizado em ' + new Date().toLocaleDateString('pt-BR', fmt);
     }
+  }
+
+  var HORARIOS_ESPERADOS = [10, 11, 12, 15, 17]; // agenda do Agendador de Tarefas
+
+  async function updateFreshness() {
+    var el = document.getElementById('gb-updated');
+    if (!el) return;
+    el.classList.remove('gb-warning', 'gb-error');
+    el.title = '';
+
+    var run = null;
+    try {
+      var res = await supabase.rpc('scraper_status_publica');
+      if (!res.error && res.data && res.data.length) run = res.data[0];
+    } catch (e) { /* segue pro fallback */ }
+
+    if (!run) { freshnessFallback(el); return; }
+
+    var hhmm = { hour: '2-digit', minute: '2-digit' };
+    var started = new Date(run.started_at);
+    var now = new Date();
+
+    if (run.status === 'em_andamento') {
+      var minutos = (now - started) / 60000;
+      if (minutos > 90) {
+        el.textContent = '⚠ Coleta travada — avise o suporte';
+        el.classList.add('gb-error');
+        el.title = 'Iniciada às ' + started.toLocaleTimeString('pt-BR', hhmm) + ' e ainda não terminou.';
+      } else {
+        el.textContent = 'Atualizando agora…';
+      }
+      return;
+    }
+
+    if (run.status === 'erro') {
+      el.textContent = '⚠ Falha na coleta das ' + started.toLocaleTimeString('pt-BR', hhmm);
+      el.classList.add('gb-error');
+      el.title = run.error_message || 'Erro desconhecido — o catálogo mostrado é do último sucesso.';
+      return;
+    }
+
+    if (run.status === 'ok' && run.finished_at) {
+      var finished = new Date(run.finished_at);
+      var t0 = new Date(); t0.setHours(0,0,0,0);
+      var f0 = new Date(finished); f0.setHours(0,0,0,0);
+      var fmtDia = { day: '2-digit', month: '2-digit' };
+
+      if (f0.getTime() !== t0.getTime()) {
+        el.textContent = '⚠ Atualizado em ' + finished.toLocaleDateString('pt-BR', fmtDia);
+        el.classList.add('gb-warning');
+        el.title = 'A última coleta bem-sucedida não é de hoje.';
+        return;
+      }
+
+      el.textContent = 'Atualizado hoje às ' + finished.toLocaleTimeString('pt-BR', hhmm);
+
+      // Passou muito de um horário esperado sem que a coleta correspondente apareça?
+      var atrasado = null;
+      HORARIOS_ESPERADOS.forEach(function(h){
+        var slot = new Date(); slot.setHours(h, 0, 0, 0);
+        if (slot <= now) atrasado = slot;
+      });
+      if (atrasado && finished < atrasado && (now - atrasado) / 60000 > 90) {
+        el.classList.add('gb-warning');
+        el.title = 'A coleta das ' + atrasado.getHours() + 'h ainda não apareceu.';
+      }
+      return;
+    }
+
+    freshnessFallback(el);
   }
 
   /* ── LOCATION DROPDOWNS ─────────────────────────────── */
