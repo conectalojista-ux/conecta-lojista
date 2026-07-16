@@ -1219,6 +1219,18 @@
   </div>
 </div>
 
+<!-- MODAL DEFINIR SENHA (link de recuperação/primeiro acesso) -->
+<div class="modal-overlay" id="modal-setpass-overlay"></div>
+<div class="modal-box" id="modal-setpass" role="dialog" aria-modal="true" aria-label="Definir nova senha">
+  <p class="modal-sub" style="margin-top:8px">Defina sua senha para acessar sua conta Conecta Lojista</p>
+  <form id="form-setpass" autocomplete="on" onsubmit="event.preventDefault(); doSetPasswordRecovery();">
+    <div class="auth-field"><label>Nova senha</label><input type="password" id="setpass-nova" placeholder="mínimo 6 caracteres" autocomplete="new-password"></div>
+    <div class="auth-field"><label>Confirme a senha</label><input type="password" id="setpass-confirma" placeholder="repete a senha" autocomplete="new-password"></div>
+    <div class="auth-error" id="setpass-error"></div>
+    <button class="btn-auth-submit" type="submit">Salvar senha e entrar</button>
+  </form>
+</div>
+
 <!-- MODAL UPGRADE -->
 <div class="modal-overlay" id="modal-upgrade-overlay" onclick="closeUpgradeModal()"></div>
 <div class="modal-box modal-upgrade" id="modal-upgrade" role="dialog" aria-modal="true" aria-label="Assinar Conecta Lojista">
@@ -1544,24 +1556,45 @@
   }
 
   /* Usuário voltou pelo link de recuperação → define nova senha.
-     Se for conta de fornecedor (o link de recuperação sempre cai aqui no
-     site principal, não tem como mandar direto pro estoque.html), manda
-     ele pra lá depois de trocar a senha, em vez de deixar na área de
-     assinante que não é a dele. */
-  async function handlePasswordRecovery() {
-    var nova = window.prompt('Defina sua nova senha (mínimo 6 caracteres):');
-    if (!nova) return;
-    if (nova.length < 6) { alert('A senha precisa ter ao menos 6 caracteres.'); return; }
-    var { data, error } = await supabase.auth.updateUser({ password: nova });
-    if (error) { alert('Erro ao atualizar senha: ' + error.message); return; }
-    var sup = await supabase.from('suppliers').select('id').eq('id', data.user.id).maybeSingle();
-    if (sup.data) {
-      alert('Senha atualizada! Você vai ser levado pra área do fornecedor.');
-      window.location.href = 'estoque.html';
-      return;
-    }
-    alert('Senha atualizada com sucesso!');
+     Antes usava window.prompt(), que é um dialog nativo pouco confiável
+     (alguns navegadores/contextos bloqueiam ou o usuário desconfia e
+     cancela) e, mesmo quando funcionava, nunca atualizava o header —
+     a pessoa ficava logada "por baixo dos panos" mas a tela continuava
+     mostrando "Entrar". Agora usa um modal normal do site e, ao concluir,
+     atualiza o estado de auth e re-renderiza a página na hora. Se for
+     conta de fornecedor (o link de recuperação sempre cai aqui no site
+     principal, não tem como mandar direto pro estoque.html), manda ela
+     pra lá depois de trocar a senha, em vez de deixar na área de assinante. */
+  function handlePasswordRecovery() {
+    document.getElementById('setpass-error').textContent = '';
+    document.getElementById('setpass-nova').value = '';
+    document.getElementById('setpass-confirma').value = '';
+    document.getElementById('modal-setpass-overlay').classList.add('open');
+    document.getElementById('modal-setpass').classList.add('open');
   }
+
+  window.doSetPasswordRecovery = async function() {
+    var nova = document.getElementById('setpass-nova').value;
+    var conf = document.getElementById('setpass-confirma').value;
+    var err  = document.getElementById('setpass-error');
+    err.textContent = '';
+    if (!nova || nova.length < 6) { err.textContent = 'A senha precisa ter ao menos 6 caracteres.'; return; }
+    if (nova !== conf) { err.textContent = 'As senhas não são iguais.'; return; }
+    var btn = document.querySelector('#form-setpass button[type=submit]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Salvando…'; }
+    var { data, error } = await supabase.auth.updateUser({ password: nova });
+    if (btn) { btn.disabled = false; btn.textContent = 'Salvar senha e entrar'; }
+    if (error) { err.textContent = error.message; return; }
+    document.getElementById('modal-setpass-overlay').classList.remove('open');
+    document.getElementById('modal-setpass').classList.remove('open');
+    var sup = await supabase.from('suppliers').select('id').eq('id', data.user.id).maybeSingle();
+    if (sup.data) { window.location.href = 'estoque.html'; return; }
+    authState.user = data.user;
+    authState.isSubscriber = await checkSubscription(data.user.id);
+    renderHeaderAuth();
+    if (allData.length) { await loadContacts(); }
+    render();
+  };
 
   /* ── AUTH MODAL ──────────────────────────────────────── */
   var _lastFocus = null;
