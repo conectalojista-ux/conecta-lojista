@@ -27,7 +27,18 @@
     .logo span { font-weight:800; font-size:16px; letter-spacing:-.01em; }
     .logo em { color:var(--green); font-style:normal; }
     h1 { font-size:20px; margin-bottom:6px; }
+    h2 { font-size:17px; margin-bottom:8px; }
     p.sub { color:var(--gray); font-size:13px; margin-bottom:22px; line-height:1.5; }
+    .publicar-intro { margin-bottom:20px; }
+    .publicar-intro p.sub { margin-bottom:10px; }
+    .lista-identifica { color:var(--gray); font-size:13px; line-height:1.6; margin:0 0 10px 20px; }
+    .resumo-identificacao {
+      background:var(--field); border:1px solid var(--border); border-radius:12px;
+      padding:14px 16px; margin-bottom:16px; font-size:13.5px; line-height:1.7;
+    }
+    .resumo-identificacao strong { color:var(--text); }
+    .resumo-identificacao .linha-alerta { color:#fbbf24; }
+    .resumo-identificacao .linha-ok { color:var(--green); }
     label { font-size:11.5px; font-weight:600; color:var(--gray); text-transform:uppercase; letter-spacing:.04em; display:block; margin-bottom:6px; }
     input {
       width:100%; padding:11px 14px; border-radius:10px;
@@ -174,19 +185,31 @@
         <h1 id="welcome-nome"></h1>
         <button class="btn-secondary" onclick="doLogout()">Sair</button>
       </div>
+      <div class="publicar-intro">
+        <h2>Publicar lista de produtos</h2>
+        <p class="sub">Publique sua lista em menos de 20 segundos. Basta colar a mesma lista que você já envia no WhatsApp ou importar sua planilha Excel.</p>
+        <p class="sub" style="margin-bottom:6px">O Conecta Lojista identifica automaticamente:</p>
+        <ul class="lista-identifica">
+          <li>Produto</li>
+          <li>Capacidade</li>
+          <li>Cor</li>
+          <li>Preço</li>
+        </ul>
+        <p class="sub">Você apenas confere e publica.</p>
+      </div>
+
       <div class="tabs-modo">
         <button type="button" class="tab-modo active" id="tab-colar" onclick="selecionarModo('colar')">Colar lista do WhatsApp</button>
-        <button type="button" class="tab-modo" id="tab-planilha" onclick="selecionarModo('planilha')">Enviar planilha (Excel/CSV)</button>
+        <button type="button" class="tab-modo" id="tab-planilha" onclick="selecionarModo('planilha')">Importar planilha (Excel/CSV)</button>
       </div>
 
       <div id="modo-colar">
-        <p class="sub">Cola aqui a mesma lista de produtos que você já manda no WhatsApp. O sistema tenta reconhecer modelo, cor, capacidade e preço automaticamente — você confere e ajusta antes de publicar.</p>
         <textarea id="lista-colada" placeholder="Cola sua lista aqui..."></textarea>
-        <button class="btn-analisar" onclick="analisarLista()" id="btn-analisar">Analisar lista</button>
+        <button class="btn-analisar" onclick="analisarLista()" id="btn-analisar">Continuar</button>
       </div>
 
       <div id="modo-planilha" style="display:none">
-        <p class="sub">Envia um arquivo .xlsx ou .csv com seus produtos. Você escolhe qual coluna é qual antes de gerar a prévia.</p>
+        <p class="sub">Importa um arquivo .xlsx ou .csv com seus produtos. Você escolhe qual coluna é qual antes de continuar.</p>
         <input type="file" id="input-planilha" accept=".xlsx,.xls,.csv" onchange="processarPlanilha(event)">
         <div id="mapeamento-planilha" style="display:none"></div>
       </div>
@@ -255,12 +278,15 @@
       document.getElementById('box').classList.toggle('box-wide', id === 'view-estoque');
     }
 
+    var currentUser = null;
+
     async function checkSupplier(user) {
       var res = await supabase.from('suppliers').select('nome_fantasia,status').eq('id', user.id).single();
       if (res.error || !res.data || res.data.status !== 'ativo') {
         show('view-denied');
         return;
       }
+      currentUser = user;
       document.getElementById('welcome-nome').textContent = res.data.nome_fantasia;
       show('view-estoque');
     }
@@ -512,11 +538,47 @@
       return o.valor_num != null && !isNaN(o.valor_num) && o.valor_num > 0;
     }
 
-    window.analisarLista = function() {
+    /* Compara com o que o fornecedor ja tem publicado, so pra avisar
+       "isso mudou de preco" — nao interfere em nada da publicacao em si. */
+    var precosAnteriores = null; // cache: chave produto -> valor_num
+    function chaveProduto(o) {
+      return [o.categoria, (o.modelo || '').trim().toLowerCase(),
+              (o.cor || '').trim().toLowerCase(), (o.variante || '').trim().toLowerCase()].join('|');
+    }
+    async function carregarPrecosAnteriores() {
+      if (precosAnteriores !== null) return precosAnteriores;
+      precosAnteriores = {};
+      if (!currentUser) return precosAnteriores;
+      try {
+        // leitura direta da tabela ofertas e bloqueada ate pra usuario logado
+        // (protege o paywall) — RPC dedicada deixa o fornecedor ver so a
+        // propria linha, sem abrir a tabela inteira.
+        var res = await supabase.rpc('meu_estoque_atual');
+        if (!res.error && res.data) {
+          res.data.forEach(function(o) { precosAnteriores[chaveProduto(o)] = o.valor_num; });
+        }
+      } catch (e) { /* sem comparacao — segue sem essa info, nao bloqueia nada */ }
+      return precosAnteriores;
+    }
+    function anotarComparacaoPrecos(lista, mapa) {
+      lista.forEach(function(o) {
+        var anterior = mapa[chaveProduto(o)];
+        if (anterior === undefined) o.statusPreco = 'novo';
+        else if (precoValido(o) && Number(anterior) !== Number(o.valor_num)) o.statusPreco = 'alterado';
+        else o.statusPreco = 'igual';
+      });
+    }
+
+    window.analisarLista = async function() {
       var texto = document.getElementById('lista-colada').value;
       if (!texto.trim()) return;
+      var btn = document.getElementById('btn-analisar');
+      btn.disabled = true;
       var resultado = analisarTexto(texto);
       ofertasAtuais = resultado.ofertas;
+      var mapa = await carregarPrecosAnteriores();
+      anotarComparacaoPrecos(ofertasAtuais, mapa);
+      btn.disabled = false;
       renderRevisao(resultado.naoReconhecido);
       if (!ofertasAtuais.length) {
         var msg = resultado.naoReconhecido.length
@@ -552,12 +614,7 @@
         tbody.appendChild(tr);
       });
 
-      var prontas = ofertasAtuais.filter(function(o) { return o.categoria && o.modelo && precoValido(o); }).length;
-      var atencao = ofertasAtuais.length - prontas;
-      document.getElementById('resumo-bar').innerHTML =
-        '<strong>' + ofertasAtuais.length + '</strong> oferta(s) detectada(s)' +
-        ' <span class="pill pill-ok">' + prontas + ' prontas</span>' +
-        (atencao > 0 ? ' <span class="pill pill-atencao">' + atencao + ' precisam de atenção</span>' : '');
+      atualizarResumo();
 
       var wrapNR = document.getElementById('wrap-naoreconhecido');
       if (naoReconhecido.length) {
@@ -570,17 +627,30 @@
       document.getElementById('area-revisao').style.display = (ofertasAtuais.length || naoReconhecido.length) ? 'block' : 'none';
     }
 
+    /* Resumo no formato "produtos identificados" — a mesma info de sempre
+       (quantos prontos, quantos precisam de atencao), so que explicada em
+       linguagem de "publicar lista", nao de "cadastro tecnico". */
+    function atualizarResumo() {
+      var total = ofertasAtuais.length;
+      var sucesso = ofertasAtuais.filter(function(o) { return o.categoria && o.modelo && precoValido(o); }).length;
+      var atencao = total - sucesso;
+      var alterados = ofertasAtuais.filter(function(o) { return o.statusPreco === 'alterado'; }).length;
+
+      var html = '<strong>' + total + '</strong> produto(s) encontrado(s).<br>' +
+        '<span class="linha-ok">' + sucesso + ' produto(s) identificado(s) com sucesso.</span>';
+      if (alterados > 0) html += '<br><span class="linha-alerta">' + alterados + ' produto(s) tiveram alteração no preço.</span>';
+      if (atencao > 0) html += '<br><span class="linha-alerta">' + atencao + ' produto(s) precisam de conferência.</span>';
+
+      document.getElementById('resumo-bar').innerHTML = html;
+      document.getElementById('resumo-bar').className = 'resumo-identificacao';
+    }
+
     window.atualizarOferta = function(idx, campo, valor) {
       ofertasAtuais[idx][campo] = valor;
       if (campo === 'valor_num' || campo === 'categoria' || campo === 'modelo') {
-        // so precisa re-renderizar o resumo/badges, nao a tabela inteira
+        // so precisa re-renderizar o resumo, nao a tabela inteira
         // (evita perder foco do campo que o usuario acabou de editar)
-        var prontas = ofertasAtuais.filter(function(o) { return o.categoria && o.modelo && precoValido(o); }).length;
-        var atencao = ofertasAtuais.length - prontas;
-        document.getElementById('resumo-bar').innerHTML =
-          '<strong>' + ofertasAtuais.length + '</strong> oferta(s) detectada(s)' +
-          ' <span class="pill pill-ok">' + prontas + ' prontas</span>' +
-          (atencao > 0 ? ' <span class="pill pill-atencao">' + atencao + ' precisam de atenção</span>' : '');
+        atualizarResumo();
       }
     };
 
@@ -669,7 +739,7 @@
         '<select id="categoria-padrao-planilha">' +
         Object.keys(CAT_LABELS).map(function(c) { return '<option value="' + c + '">' + CAT_LABELS[c] + '</option>'; }).join('') +
         '</select></div>';
-      html += '<button class="btn-gerar-previa" onclick="gerarPreviaPlanilha()">Gerar prévia</button>';
+      html += '<button class="btn-gerar-previa" onclick="gerarPreviaPlanilha()">Continuar</button>';
 
       wrap.innerHTML = html;
       wrap.style.display = 'block';
@@ -680,7 +750,7 @@
       return extrairPreco(String(v)) !== null ? extrairPreco(String(v)) : (parseFloat(String(v).replace(',', '.')) || null);
     }
 
-    window.gerarPreviaPlanilha = function() {
+    window.gerarPreviaPlanilha = async function() {
       var selects = document.querySelectorAll('#mapeamento-planilha .map-select');
       var mapa = {}; // campo -> indice da coluna
       selects.forEach(function(sel) {
@@ -717,6 +787,8 @@
       }
 
       ofertasAtuais = ofertas;
+      var mapaPrecos = await carregarPrecosAnteriores();
+      anotarComparacaoPrecos(ofertasAtuais, mapaPrecos);
       renderRevisao([]);
       if (!ofertas.length) {
         alert('Nenhuma linha com Modelo preenchido foi encontrada nessa planilha.');
@@ -745,6 +817,7 @@
           '<div class="msg-sucesso">✓ ' + data + ' oferta(s) publicada(s) com sucesso! Já estão visíveis no Conecta Lojista.</div>';
         document.getElementById('lista-colada').value = '';
         ofertasAtuais = [];
+        precosAnteriores = null; // invalida o cache — se publicar de novo na mesma sessao, compara com o que acabou de subir
         document.getElementById('area-revisao').style.display = 'none';
       } catch (e) {
         alert('Erro ao publicar: ' + e.message);
