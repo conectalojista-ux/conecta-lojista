@@ -2042,7 +2042,21 @@
      Guarda só os dados PÚBLICOS (contatos nunca são cacheados).
      v2: invalida caches antigos que continham telefone. */
   var CACHE_KEY = 'cl_ofertas_v2';
-  var CACHE_TTL = 60 * 60 * 1000; // 1h — alinhado ao ritmo do scraper (roda a cada 1-3h)
+  var CACHE_TTL = 60 * 60 * 1000; // 1h — teto de segurança; na prática o check contra scraper_runs costuma disparar antes
+
+  /* Horário da última rodada do scraper com sucesso — usado pra saber se o
+     cache local já era "velho" no momento em que foi salvo (comparação por
+     evento real, não só por tempo decorrido). */
+  async function fetchLastRunFinishedAt() {
+    try {
+      var res = await supabase.rpc('scraper_status_publica');
+      if (!res.error && res.data && res.data.length && res.data[0].status === 'ok') {
+        return res.data[0].finished_at || null;
+      }
+    } catch (e) { /* ignora — cai no TTL como antes */ }
+    return null;
+  }
+
   async function loadAllCached() {
     try {
       var raw = localStorage.getItem(CACHE_KEY);
@@ -2056,7 +2070,8 @@
     } catch (e) { /* cache corrompido/indisponível — ignora */ }
     var data = await loadAll();
     try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: data }));
+      var lastRun = await fetchLastRunFinishedAt();
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), run: lastRun, data: data }));
     } catch (e) { /* quota cheia — segue sem cache */ }
     return data;
   }
@@ -2071,7 +2086,10 @@
       var data = await loadAll();
       if (data && data.length) {
         allData = data;
-        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: data })); } catch (e) {}
+        try {
+          var lastRun = await fetchLastRunFinishedAt();
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), run: lastRun, data: data }));
+        } catch (e) {}
         populateCounts();
         populateDynamicFilters();
         updateGlobalStats();
@@ -2937,30 +2955,48 @@
         return !obj || !obj.ts || (Date.now() - obj.ts >= CACHE_TTL);
       } catch (e) { return false; }
     }
+    /* Compara o cache local contra a rodada mais recente de verdade
+       (scraper_runs), em vez de só esperar o prazo fixo de 1h vencer —
+       assim que o scraper termina uma rodada nova, a aba percebe na
+       proxima checagem (até 15min) em vez de esperar até 1h de TTL. */
+    async function ofertasCacheDesatualizadaVsScraper() {
+      try {
+        var raw = localStorage.getItem(CACHE_KEY);
+        if (!raw) return false;
+        var obj = JSON.parse(raw);
+        if (!obj || !obj.run) return false; // cache antigo (sem esse campo) — TTL cuida
+        var ultimaRodada = await fetchLastRunFinishedAt();
+        return !!ultimaRodada && ultimaRodada !== obj.run;
+      } catch (e) { return false; }
+    }
     function canReloadNow() {
       try {
         var last = +sessionStorage.getItem('cl_last_auto_reload') || 0;
         return (Date.now() - last) >= MIN_RELOAD_GAP;
       } catch (e) { return true; }
     }
-    function checkVersion() {
-      fetch(location.pathname, { cache: 'no-store', method: 'HEAD' })
-        .then(function(res) {
-          var lm = res.headers.get('last-modified');
-          var codeChanged = false;
-          if (lm) {
-            if (knownLastModified === null) { knownLastModified = lm; }
-            else if (lm !== knownLastModified) { codeChanged = true; }
-          }
-          var dataStale = initialCheckDone && ofertasCacheIsStale();
-          initialCheckDone = true;
-          if ((codeChanged || dataStale) && canReloadNow()) {
-            if (document.querySelector('.modal-overlay.open')) return; // tenta de novo na próxima checagem
-            try { sessionStorage.setItem('cl_last_auto_reload', String(Date.now())); } catch (e) {}
-            location.reload();
-          }
-        })
-        .catch(function() { /* offline ou bloqueado — ignora */ });
+    async function checkVersion() {
+      var codeChanged = false;
+      try {
+        var res = await fetch(location.pathname, { cache: 'no-store', method: 'HEAD' });
+        var lm = res.headers.get('last-modified');
+        if (lm) {
+          if (knownLastModified === null) { knownLastModified = lm; }
+          else if (lm !== knownLastModified) { codeChanged = true; }
+        }
+      } catch (e) { /* offline ou bloqueado — ignora essa parte */ }
+
+      var dataStale = false;
+      if (initialCheckDone) {
+        dataStale = ofertasCacheIsStale() || await ofertasCacheDesatualizadaVsScraper();
+      }
+      initialCheckDone = true;
+
+      if ((codeChanged || dataStale) && canReloadNow()) {
+        if (document.querySelector('.modal-overlay.open')) return; // tenta de novo na próxima checagem
+        try { sessionStorage.setItem('cl_last_auto_reload', String(Date.now())); } catch (e) {}
+        location.reload();
+      }
     }
     checkVersion();
     document.addEventListener('visibilitychange', function() {

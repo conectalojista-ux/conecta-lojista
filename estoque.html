@@ -20,7 +20,8 @@
       display:flex; align-items:center; justify-content:center; padding:20px;
       -webkit-font-smoothing:antialiased;
     }
-    .box { width:100%; max-width:420px; background:var(--card); border:1px solid var(--border); border-radius:20px; padding:32px 28px; }
+    .box { width:100%; max-width:420px; background:var(--card); border:1px solid var(--border); border-radius:20px; padding:32px 28px; transition:max-width .15s; }
+    .box.box-wide { max-width:1000px; }
     .logo { display:flex; align-items:center; gap:10px; margin-bottom:26px; }
     .logo img { height:34px; width:auto; }
     .logo span { font-weight:800; font-size:16px; letter-spacing:-.01em; }
@@ -36,6 +37,13 @@
     }
     input:focus { border-color:var(--green); }
     input::placeholder { color:#5a5a60; }
+    select {
+      width:100%; padding:11px 14px; border-radius:10px;
+      border:1.5px solid var(--border); background:var(--field); color:var(--text);
+      font-size:14px; outline:none; margin-bottom:16px; font-family:inherit;
+      transition:border-color .15s;
+    }
+    select:focus { border-color:var(--green); }
     button {
       width:100%; padding:13px; background:var(--green); color:var(--green-dark);
       border:none; border-radius:12px; font-size:15px; font-weight:700;
@@ -63,6 +71,82 @@
     }
     .btn-secondary:hover { border-color:#3a3a40; opacity:1; color:var(--text); }
     .loading { text-align:center; color:var(--gray); font-size:13px; padding:20px 0; }
+
+    /* ── ÁREA DE ESTOQUE ─────────────────────────────────── */
+    .estoque-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+    .estoque-header h1 { font-size:19px; }
+    .estoque-header .btn-secondary { margin-top:0; width:auto; padding:8px 16px; }
+    .tabs-modo { display:flex; gap:8px; margin-bottom:16px; border-bottom:1px solid var(--border); }
+    .tab-modo {
+      width:auto; background:none; border:none; border-bottom:2px solid transparent;
+      color:var(--gray); font-weight:600; font-size:13.5px; padding:10px 4px;
+      border-radius:0; margin-bottom:-1px;
+    }
+    .tab-modo:hover { opacity:1; color:var(--text); }
+    .tab-modo.active { color:var(--green); border-bottom-color:var(--green); }
+    input[type=file] {
+      width:100%; padding:11px 14px; border-radius:10px; margin-bottom:0;
+      border:1.5px dashed var(--border); background:var(--field); color:var(--gray); font-size:13px;
+    }
+    .mapa-linha { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+    .mapa-linha .mapa-label { width:180px; font-size:13px; color:var(--text); flex-shrink:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .mapa-linha select { flex:1; margin-bottom:0; }
+    .btn-gerar-previa { width:auto; padding:12px 24px; margin-top:16px; }
+    textarea {
+      width:100%; min-height:220px; padding:14px; border-radius:12px;
+      border:1.5px solid var(--border); background:var(--field); color:var(--text);
+      font-size:13.5px; font-family:inherit; line-height:1.5; resize:vertical;
+      outline:none; transition:border-color .15s;
+    }
+    textarea:focus { border-color:var(--green); }
+    textarea::placeholder { color:#5a5a60; }
+    .btn-analisar { width:auto; padding:12px 24px; margin-top:14px; }
+    .resumo-bar {
+      display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:22px 0 14px;
+      font-size:13px; color:var(--gray);
+    }
+    .resumo-bar strong { color:var(--text); }
+    .pill { display:inline-flex; align-items:center; gap:5px; padding:4px 11px; border-radius:20px; font-weight:700; font-size:12px; }
+    .pill-ok { background:rgba(34,197,94,.14); color:var(--green); }
+    .pill-atencao { background:rgba(251,191,36,.14); color:#fbbf24; }
+    .tabela-wrap { overflow-x:auto; border:1px solid var(--border); border-radius:14px; }
+    table.rev { width:100%; border-collapse:collapse; min-width:820px; }
+    table.rev th {
+      text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.03em;
+      color:var(--gray); padding:10px 10px; border-bottom:1px solid var(--border); white-space:nowrap;
+    }
+    table.rev td { padding:6px 8px; border-bottom:1px solid var(--border); vertical-align:middle; }
+    table.rev tr:last-child td { border-bottom:none; }
+    table.rev input, table.rev select {
+      width:100%; padding:7px 9px; border-radius:8px; border:1.5px solid var(--border);
+      background:var(--bg); color:var(--text); font-size:13px; font-family:inherit; outline:none;
+    }
+    table.rev input:focus, table.rev select:focus { border-color:var(--green); }
+    table.rev input[type=number] { width:90px; }
+    .conf-dot { display:inline-block; width:9px; height:9px; border-radius:50%; }
+    .conf-alta { background:var(--green); }
+    .conf-media { background:#fbbf24; }
+    .conf-baixa { background:#f87171; }
+    .btn-remover-linha {
+      width:28px; height:28px; padding:0; border-radius:8px; background:none;
+      border:1.5px solid var(--border); color:var(--gray); font-size:15px; line-height:1;
+    }
+    .btn-remover-linha:hover { border-color:#f87171; color:#f87171; }
+    .btn-publicar { width:auto; padding:13px 28px; margin-top:20px; }
+    .naoreconhecido { margin-top:20px; }
+    .naoreconhecido summary {
+      cursor:pointer; font-size:13px; color:var(--gray); font-weight:600; padding:8px 0;
+      user-select:none;
+    }
+    .naoreconhecido pre {
+      white-space:pre-wrap; font-family:inherit; font-size:12px; color:var(--gray);
+      background:var(--field); border:1px solid var(--border); border-radius:10px;
+      padding:12px 14px; margin-top:8px; max-height:220px; overflow-y:auto;
+    }
+    .msg-sucesso {
+      background:rgba(34,197,94,.14); color:var(--green); border-radius:10px;
+      padding:12px 16px; font-size:13.5px; font-weight:600; margin-bottom:16px;
+    }
   </style>
 </head>
 <body>
@@ -85,13 +169,56 @@
       <button id="btn-entrar" onclick="doLogin()">Entrar</button>
     </div>
 
-    <div id="view-welcome" style="display:none" class="center">
-      <div class="icon-circle">📦</div>
-      <h2 id="welcome-nome"></h2>
-      <p>Sua conta de fornecedor está ativa. Em breve, você vai poder colar aqui a mesma lista de produtos que já envia no WhatsApp, e o sistema atualiza seu estoque automaticamente.</p>
-      <div class="badge">✓ Conta reconhecida</div>
-      <br>
-      <button class="btn-secondary" onclick="doLogout()">Sair</button>
+    <div id="view-estoque" style="display:none">
+      <div class="estoque-header">
+        <h1 id="welcome-nome"></h1>
+        <button class="btn-secondary" onclick="doLogout()">Sair</button>
+      </div>
+      <div class="tabs-modo">
+        <button type="button" class="tab-modo active" id="tab-colar" onclick="selecionarModo('colar')">Colar lista do WhatsApp</button>
+        <button type="button" class="tab-modo" id="tab-planilha" onclick="selecionarModo('planilha')">Enviar planilha (Excel/CSV)</button>
+      </div>
+
+      <div id="modo-colar">
+        <p class="sub">Cola aqui a mesma lista de produtos que você já manda no WhatsApp. O sistema tenta reconhecer modelo, cor, capacidade e preço automaticamente — você confere e ajusta antes de publicar.</p>
+        <textarea id="lista-colada" placeholder="Cola sua lista aqui..."></textarea>
+        <button class="btn-analisar" onclick="analisarLista()" id="btn-analisar">Analisar lista</button>
+      </div>
+
+      <div id="modo-planilha" style="display:none">
+        <p class="sub">Envia um arquivo .xlsx ou .csv com seus produtos. Você escolhe qual coluna é qual antes de gerar a prévia.</p>
+        <input type="file" id="input-planilha" accept=".xlsx,.xls,.csv" onchange="processarPlanilha(event)">
+        <div id="mapeamento-planilha" style="display:none"></div>
+      </div>
+
+      <div id="msg-sucesso-wrap"></div>
+
+      <div id="area-revisao" style="display:none">
+        <div class="resumo-bar" id="resumo-bar"></div>
+        <div class="tabela-wrap">
+          <table class="rev">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Categoria</th>
+                <th>Condição</th>
+                <th>Modelo</th>
+                <th>Cor</th>
+                <th>Capacidade</th>
+                <th>Preço (R$)</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tbody-revisao"></tbody>
+          </table>
+        </div>
+        <button class="btn-publicar" onclick="publicarEstoque()" id="btn-publicar">Publicar ofertas</button>
+
+        <details class="naoreconhecido" id="wrap-naoreconhecido" style="display:none">
+          <summary>Texto não reconhecido (clique pra ver)</summary>
+          <pre id="texto-naoreconhecido"></pre>
+        </details>
+      </div>
     </div>
 
     <div id="view-denied" style="display:none" class="center">
@@ -114,6 +241,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
   (function() {
     var SUPA_URL = 'https://desfdtxbvuqazvsrmhwp.supabase.co';
@@ -121,9 +249,10 @@
     var supabase = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
     function show(id) {
-      ['view-checking', 'view-login', 'view-welcome', 'view-denied', 'view-setpassword'].forEach(function(v) {
+      ['view-checking', 'view-login', 'view-estoque', 'view-denied', 'view-setpassword'].forEach(function(v) {
         document.getElementById(v).style.display = (v === id) ? 'block' : 'none';
       });
+      document.getElementById('box').classList.toggle('box-wide', id === 'view-estoque');
     }
 
     async function checkSupplier(user) {
@@ -132,8 +261,8 @@
         show('view-denied');
         return;
       }
-      document.getElementById('welcome-nome').textContent = 'Bem-vindo, ' + res.data.nome_fantasia;
-      show('view-welcome');
+      document.getElementById('welcome-nome').textContent = res.data.nome_fantasia;
+      show('view-estoque');
     }
 
     window.doLogin = async function() {
@@ -172,6 +301,455 @@
       if (error) { err.textContent = error.message; return; }
       show('view-checking');
       await checkSupplier(data.user);
+    };
+
+    /* ── PARSER DA LISTA COLADA ──────────────────────────────
+       Sem IA — regex + dicionario, igual o scraper ja faz pra cor/capacidade.
+       Formato varia MUITO de fornecedor pra fornecedor (confirmado com
+       exemplos reais), entao o parser nao tenta ser perfeito — ele faz o
+       trabalho pesado e a tela de revisao cobre o resto. */
+
+    var CATEGORIA_GRUPOS = [
+      { cat: 'iphone',      kws: ['iphone'] },
+      { cat: 'ipad',        kws: ['ipad'] },
+      { cat: 'macbook',     kws: ['macbook', 'mac mini', 'imac'] },
+      { cat: 'watch',       kws: ['watch'] },
+      { cat: 'eletronicos', kws: ['eletronico'] },
+      { cat: 'acessorios',  kws: ['acessorio', 'airpods', 'air pods', 'pencil', 'magic mouse', 'magic key',
+                                   'capinha', 'capa ', 'capo ', 'fonte ', 'cabo ', 'carregador'] },
+    ];
+    var CONDICAO_USADO_KWS = ['seminovo', 'semi novo', 'usado', 'swap', 'as is'];
+    var CORES_CONHECIDAS = [
+      'preto', 'branco', 'azul', 'roxo', 'vermelho', 'verde', 'amarelo', 'laranja', 'cinza',
+      'dourado', 'prata', 'grafite', 'rosa', 'bege', 'titanio', 'meia-noite', 'estelar',
+      'silver', 'natural', 'gold', 'gray', 'starlight', 'citrus', 'deserto', 'desert', 'jet black',
+    ];
+    var RUIDO_SUBSTRINGS = [
+      'pix', 'dinheiro', 'cartao', 'segunda a sexta', 'sabado', 'domingo', 'fechado', 'sedex',
+      'whatsapp.com', 'http', 'shopping', 'andar', 'loja ln', 'atualizado:', 'garantia da loja',
+      'responsabiliz', 'reembolso', 'devoluc', 'avisos', 'politica da loja', 'retirada', 'motoboy',
+      'extravio', 'furto', 'apreens', 'frete', 'seguro sedex', 'comunidade', 'entre em todas',
+      'lotaram', 'promocao', 'atualizacao de prec', 'baixamos', 'novidades na area',
+      'acesse nossas', 'nada trocad', 'com detalhes', 'mensagem camera', 'peca desconhecida',
+      'garantia apple', 'granita apple', 'gratina apple', 'bateria', 'confira o produto',
+    ];
+
+    function normalizarTexto(s) {
+      return (s || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+    }
+
+    function extrairPreco(linha) {
+      var m = linha.match(/(?:R\$|💵)\s?([\d.,]+)/);
+      if (!m) return null;
+      var s = m[1];
+      var dec = s.match(/,(\d{2})$/);
+      if (dec) { s = s.replace(/\./g, '').replace(',', '.'); }
+      else { s = s.replace(/[.,]/g, ''); }
+      var n = parseFloat(s);
+      return isNaN(n) ? null : n;
+    }
+
+    function extrairCor(linha) {
+      var norm = normalizarTexto(linha);
+      var candidatos = CORES_CONHECIDAS.filter(function(c) { return norm.indexOf(c) !== -1; });
+      if (!candidatos.length) return null;
+      candidatos.sort(function(a, b) { return b.length - a.length; });
+      var cor = candidatos[0];
+      return cor.charAt(0).toUpperCase() + cor.slice(1);
+    }
+
+    function ehLinhaDePrecoPuro(linha) {
+      var preco = extrairPreco(linha);
+      if (preco === null || extrairCor(linha)) return false;
+      // Linha com preco E bastante texto (ex: "Apple pencil pro 💵720") nao e
+      // "so preco" — e um item de uma linha so, com nome e preco juntos.
+      var semPreco = linha.replace(/(?:R\$|💵)\s?[\d.,]+/, '');
+      var textoRestante = semPreco.replace(/[^\p{L}\p{N}]/gu, '');
+      return textoRestante.length < 3;
+    }
+
+    function detectarCategoria(linhaNorm) {
+      for (var i = 0; i < CATEGORIA_GRUPOS.length; i++) {
+        var g = CATEGORIA_GRUPOS[i];
+        for (var j = 0; j < g.kws.length; j++) {
+          if (linhaNorm.indexOf(g.kws[j]) !== -1) return g.cat;
+        }
+      }
+      return null;
+    }
+
+    function detectarCondicaoUsado(linhaNorm) {
+      for (var i = 0; i < CONDICAO_USADO_KWS.length; i++) {
+        if (linhaNorm.indexOf(CONDICAO_USADO_KWS[i]) !== -1) return true;
+      }
+      return false;
+    }
+
+    function isRuido(linha) {
+      var norm = normalizarTexto(linha);
+      for (var i = 0; i < RUIDO_SUBSTRINGS.length; i++) {
+        if (norm.indexOf(RUIDO_SUBSTRINGS[i]) !== -1) return true;
+      }
+      if (norm.indexOf('sem selo') !== -1) return true;
+      // linha que e so uma data (ex: "20/07/2026") — nao e produto nem preco
+      if (/^\d{1,2}\/\d{1,2}(?:\/\d{2,4})?$/.test(linha.trim())) return true;
+      var semSimbolos = linha.replace(/[^\p{L}\p{N}]/gu, '');
+      return semSimbolos.length < 2;
+    }
+
+    function extrairCapacidade(modeloLinha) {
+      var m = modeloLinha.match(/(\d+)\s?(GB|TB)\b/i);
+      return m ? (m[1] + m[2]).toUpperCase() : null;
+    }
+
+    function limparModeloParaExibicao(s) {
+      return s
+        .replace(/(?:R\$|💵)\s?[\d.,]+/g, '')
+        .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F1E6}-\u{1F1FF}]/gu, '')
+        .replace(/[‼️❌✅🔥]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function formatarValor(n) {
+      return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    /* Analisa um bloco (linhas separadas por 1+ linha em branco no texto
+       original) e devolve as ofertas encontradas nele, atualizando o
+       estado de categoria/condicao (que persiste entre blocos). */
+    function analisarBloco(linhas, estado, ofertas, naoReconhecido, blocoOriginal) {
+      var linhasUteis = [];
+      linhas.forEach(function(linha) {
+        var norm = normalizarTexto(linha);
+        var cat = detectarCategoria(norm);
+        if (cat) estado.categoria = cat;
+        if (detectarCondicaoUsado(norm)) estado.condicao = 'Usado';
+        if (isRuido(linha)) return;
+        linhasUteis.push(linha);
+      });
+      if (!linhasUteis.length) return;
+
+      var modeloIdx = -1;
+      for (var i = 0; i < linhasUteis.length; i++) {
+        if (!extrairCor(linhasUteis[i]) && !ehLinhaDePrecoPuro(linhasUteis[i])) { modeloIdx = i; break; }
+      }
+      if (modeloIdx === -1) { naoReconhecido.push(blocoOriginal); return; }
+
+      var modeloLinha = linhasUteis[modeloIdx];
+      var capacidade = extrairCapacidade(modeloLinha);
+      // A propria linha do modelo pode ja trazer o preco junto
+      // (ex: "Apple pencil pro 💵720") — captura como padrao inicial.
+      var precoPadrao = extrairPreco(modeloLinha);
+      var variantes = [];
+
+      for (var j = 0; j < linhasUteis.length; j++) {
+        if (j === modeloIdx) continue;
+        var linha = linhasUteis[j];
+        var precoDaLinha = extrairPreco(linha);
+        var corDaLinha = extrairCor(linha);
+        if (corDaLinha) {
+          var precoResolvido = precoDaLinha !== null ? precoDaLinha : precoPadrao;
+          variantes.push({ cor: corDaLinha, preco: precoResolvido, herdado: precoDaLinha === null });
+          if (precoDaLinha !== null) precoPadrao = precoDaLinha;
+        } else if (precoDaLinha !== null) {
+          precoPadrao = precoDaLinha;
+        }
+        // qualquer outra linha (especificacao extra, aviso dentro do bloco) e ignorada
+      }
+
+      // Caso real: cor vem ANTES do preco que se aplica a ela (ex: "Azul" \n
+      // "R$3350", 1 variante so) — a resolucao acima so olha preco que ja
+      // apareceu antes. Preenche com o ultimo preco visto no bloco como
+      // rede de seguranca final (nao sobrescreve quem ja tem preco certo).
+      variantes.forEach(function(v) {
+        if (v.preco === null && precoPadrao !== null) { v.preco = precoPadrao; v.herdado = true; }
+      });
+
+      function montarOferta(cor, preco, precoHerdado) {
+        if (preco === null) { naoReconhecido.push(blocoOriginal); return; }
+        var confianca = 'alta';
+        if (!estado.categoria) confianca = 'baixa';
+        else if (precoHerdado || !capacidade) confianca = 'media';
+        ofertas.push({
+          categoria: estado.categoria || '',
+          condicao: estado.condicao,
+          modelo: limparModeloParaExibicao(modeloLinha),
+          cor: cor || '',
+          variante: capacidade || '',
+          valor_num: preco,
+          confianca: confianca,
+        });
+      }
+
+      if (!variantes.length) {
+        montarOferta(null, precoPadrao, false);
+      } else {
+        variantes.forEach(function(v) { montarOferta(v.cor, v.preco, v.herdado); });
+      }
+    }
+
+    function analisarTexto(texto) {
+      var blocos = texto.split(/\n\s*\n+/);
+      var estado = { categoria: null, condicao: 'Novo' };
+      var ofertas = [], naoReconhecido = [];
+      blocos.forEach(function(bloco) {
+        var linhas = bloco.split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
+        if (linhas.length) analisarBloco(linhas, estado, ofertas, naoReconhecido, bloco.trim());
+      });
+      return { ofertas: ofertas, naoReconhecido: naoReconhecido };
+    }
+
+    /* ── TELA DE REVISAO ──────────────────────────────────── */
+    var CAT_LABELS = { iphone: 'iPhone', ipad: 'iPad', macbook: 'MacBook', watch: 'Apple Watch', acessorios: 'Acessórios', eletronicos: 'Eletrônicos' };
+    var ofertasAtuais = [];
+
+    // "!= null" sozinho deixa passar NaN (parseFloat('') ou parseFloat('abc')
+    // viram NaN, e "NaN != null" da true em JS) — sem esse checkbox extra,
+    // uma linha com preco vazio/invalido seria contada como "pronta" e
+    // publicada com preco nulo.
+    function precoValido(o) {
+      return o.valor_num != null && !isNaN(o.valor_num) && o.valor_num > 0;
+    }
+
+    window.analisarLista = function() {
+      var texto = document.getElementById('lista-colada').value;
+      if (!texto.trim()) return;
+      var resultado = analisarTexto(texto);
+      ofertasAtuais = resultado.ofertas;
+      renderRevisao(resultado.naoReconhecido);
+      if (!ofertasAtuais.length) {
+        var msg = resultado.naoReconhecido.length
+          ? 'Não consegui reconhecer nenhum produto nessa lista — abre "Texto não reconhecido" ali embaixo pra ver o que foi ignorado, ou tenta colar de um jeito mais parecido com "Modelo / Cor / Preço".'
+          : 'Não encontrei nenhum texto reconhecível. Confere se colou a lista certa.';
+        document.getElementById('msg-sucesso-wrap').innerHTML = '<div class="msg-sucesso" style="background:rgba(251,191,36,.14);color:#fbbf24">' + msg + '</div>';
+      } else {
+        document.getElementById('msg-sucesso-wrap').innerHTML = '';
+      }
+    };
+
+    function renderRevisao(naoReconhecido) {
+      var tbody = document.getElementById('tbody-revisao');
+      tbody.innerHTML = '';
+      ofertasAtuais.forEach(function(o, idx) {
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td><span class="conf-dot conf-' + o.confianca + '" title="Confiança ' + o.confianca + '"></span></td>' +
+          '<td><select onchange="atualizarOferta(' + idx + ',\'categoria\',this.value)">' +
+            Object.keys(CAT_LABELS).map(function(c) {
+              return '<option value="' + c + '"' + (o.categoria === c ? ' selected' : '') + '>' + CAT_LABELS[c] + '</option>';
+            }).join('') +
+          '</select></td>' +
+          '<td><select onchange="atualizarOferta(' + idx + ',\'condicao\',this.value)">' +
+            '<option value="Novo"' + (o.condicao === 'Novo' ? ' selected' : '') + '>Novo</option>' +
+            '<option value="Usado"' + (o.condicao === 'Usado' ? ' selected' : '') + '>Usado</option>' +
+          '</select></td>' +
+          '<td><input value="' + esc(o.modelo) + '" onchange="atualizarOferta(' + idx + ',\'modelo\',this.value)"></td>' +
+          '<td><input value="' + esc(o.cor) + '" onchange="atualizarOferta(' + idx + ',\'cor\',this.value)"></td>' +
+          '<td><input value="' + esc(o.variante) + '" onchange="atualizarOferta(' + idx + ',\'variante\',this.value)"></td>' +
+          '<td><input type="number" step="0.01" value="' + (isFinite(o.valor_num) ? o.valor_num : '') + '" onchange="atualizarOferta(' + idx + ',\'valor_num\',parseFloat(this.value))"></td>' +
+          '<td><button class="btn-remover-linha" onclick="removerOferta(' + idx + ')" title="Remover">✕</button></td>';
+        tbody.appendChild(tr);
+      });
+
+      var prontas = ofertasAtuais.filter(function(o) { return o.categoria && o.modelo && precoValido(o); }).length;
+      var atencao = ofertasAtuais.length - prontas;
+      document.getElementById('resumo-bar').innerHTML =
+        '<strong>' + ofertasAtuais.length + '</strong> oferta(s) detectada(s)' +
+        ' <span class="pill pill-ok">' + prontas + ' prontas</span>' +
+        (atencao > 0 ? ' <span class="pill pill-atencao">' + atencao + ' precisam de atenção</span>' : '');
+
+      var wrapNR = document.getElementById('wrap-naoreconhecido');
+      if (naoReconhecido.length) {
+        document.getElementById('texto-naoreconhecido').textContent = naoReconhecido.join('\n\n---\n\n');
+        wrapNR.style.display = 'block';
+      } else {
+        wrapNR.style.display = 'none';
+      }
+
+      document.getElementById('area-revisao').style.display = (ofertasAtuais.length || naoReconhecido.length) ? 'block' : 'none';
+    }
+
+    window.atualizarOferta = function(idx, campo, valor) {
+      ofertasAtuais[idx][campo] = valor;
+      if (campo === 'valor_num' || campo === 'categoria' || campo === 'modelo') {
+        // so precisa re-renderizar o resumo/badges, nao a tabela inteira
+        // (evita perder foco do campo que o usuario acabou de editar)
+        var prontas = ofertasAtuais.filter(function(o) { return o.categoria && o.modelo && precoValido(o); }).length;
+        var atencao = ofertasAtuais.length - prontas;
+        document.getElementById('resumo-bar').innerHTML =
+          '<strong>' + ofertasAtuais.length + '</strong> oferta(s) detectada(s)' +
+          ' <span class="pill pill-ok">' + prontas + ' prontas</span>' +
+          (atencao > 0 ? ' <span class="pill pill-atencao">' + atencao + ' precisam de atenção</span>' : '');
+      }
+    };
+
+    window.removerOferta = function(idx) {
+      ofertasAtuais.splice(idx, 1);
+      renderRevisao([]);
+    };
+
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    /* ── PLANILHA (Excel/CSV) ─────────────────────────────
+       Caminho alternativo ao texto colado — usa a mesma tabela de revisao
+       e a mesma RPC de publicar, so muda como os dados chegam ali. Dado
+       de coluna ja mapeada e mais confiavel que texto livre, entao aqui
+       nao precisa de heuristica pesada — o fornecedor diz qual coluna e
+       qual, uma vez so. */
+    var CAMPOS_MAPEAVEIS = [
+      { campo: 'modelo',   label: 'Modelo (obrigatório)' },
+      { campo: 'preco',    label: 'Preço (obrigatório)' },
+      { campo: 'cor',      label: 'Cor' },
+      { campo: 'variante', label: 'Capacidade/Variante' },
+      { campo: 'categoria', label: 'Categoria' },
+      { campo: 'condicao', label: 'Condição' },
+    ];
+    var planilhaLinhas = null; // array de arrays (linha 0 = cabecalho)
+
+    window.selecionarModo = function(modo) {
+      document.getElementById('tab-colar').classList.toggle('active', modo === 'colar');
+      document.getElementById('tab-planilha').classList.toggle('active', modo === 'planilha');
+      document.getElementById('modo-colar').style.display = modo === 'colar' ? 'block' : 'none';
+      document.getElementById('modo-planilha').style.display = modo === 'planilha' ? 'block' : 'none';
+    };
+
+    window.processarPlanilha = function(event) {
+      var file = event.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          var wb = XLSX.read(e.target.result, { type: 'array' });
+          var sheet = wb.Sheets[wb.SheetNames[0]];
+          planilhaLinhas = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: '' })
+            .filter(function(l) { return l.some(function(c) { return String(c).trim() !== ''; }); });
+          renderMapeamentoPlanilha();
+        } catch (err) {
+          alert('Não consegui ler esse arquivo. Confere se é mesmo um .xlsx ou .csv válido.');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    };
+
+    function renderMapeamentoPlanilha() {
+      var wrap = document.getElementById('mapeamento-planilha');
+      if (!planilhaLinhas || !planilhaLinhas.length) { wrap.style.display = 'none'; return; }
+      var cabecalho = planilhaLinhas[0];
+      var numColunas = cabecalho.length;
+
+      // tenta adivinhar a coluna certa pelo nome do cabecalho, pra deixar
+      // pre-selecionado (o fornecedor so confirma, nao precisa mapear do zero)
+      function adivinhar(colIdx) {
+        var nome = normalizarTexto(String(cabecalho[colIdx] || ''));
+        if (!nome) return '';
+        if (/modelo|produto|item|nome/.test(nome)) return 'modelo';
+        if (/pre[cç]o|valor/.test(nome)) return 'preco';
+        if (/^cor$|^cores$/.test(nome)) return 'cor';
+        if (/capacidade|variante|gb|armazenamento/.test(nome)) return 'variante';
+        if (/categoria/.test(nome)) return 'categoria';
+        if (/condi[cç][aã]o|estado/.test(nome)) return 'condicao';
+        return '';
+      }
+
+      var html = '<p class="sub" style="margin-bottom:14px">Detectei ' + (planilhaLinhas.length - 1) + ' linha(s) de produto. Confirma o que é cada coluna:</p>';
+      for (var c = 0; c < numColunas; c++) {
+        var sugestao = adivinhar(c);
+        html += '<div class="mapa-linha"><span class="mapa-label" title="' + esc(cabecalho[c]) + '">"' + esc(String(cabecalho[c] || '(coluna ' + (c + 1) + ')')) + '"</span>' +
+          '<select data-col="' + c + '" class="map-select">' +
+          '<option value="">Ignorar esta coluna</option>' +
+          CAMPOS_MAPEAVEIS.map(function(f) {
+            return '<option value="' + f.campo + '"' + (sugestao === f.campo ? ' selected' : '') + '>' + f.label + '</option>';
+          }).join('') +
+          '</select></div>';
+      }
+      html += '<div class="mapa-linha"><span class="mapa-label">Categoria padrão (se a planilha não tiver coluna de categoria)</span>' +
+        '<select id="categoria-padrao-planilha">' +
+        Object.keys(CAT_LABELS).map(function(c) { return '<option value="' + c + '">' + CAT_LABELS[c] + '</option>'; }).join('') +
+        '</select></div>';
+      html += '<button class="btn-gerar-previa" onclick="gerarPreviaPlanilha()">Gerar prévia</button>';
+
+      wrap.innerHTML = html;
+      wrap.style.display = 'block';
+    }
+
+    function parseValorCelula(v) {
+      if (typeof v === 'number') return v;
+      return extrairPreco(String(v)) !== null ? extrairPreco(String(v)) : (parseFloat(String(v).replace(',', '.')) || null);
+    }
+
+    window.gerarPreviaPlanilha = function() {
+      var selects = document.querySelectorAll('#mapeamento-planilha .map-select');
+      var mapa = {}; // campo -> indice da coluna
+      selects.forEach(function(sel) {
+        if (sel.value) mapa[sel.value] = parseInt(sel.dataset.col, 10);
+      });
+      if (mapa.modelo === undefined || mapa.preco === undefined) {
+        alert('Precisa marcar pelo menos uma coluna como Modelo e uma como Preço.');
+        return;
+      }
+      var categoriaPadrao = document.getElementById('categoria-padrao-planilha').value;
+
+      var ofertas = [];
+      for (var i = 1; i < planilhaLinhas.length; i++) {
+        var linha = planilhaLinhas[i];
+        var modelo = mapa.modelo !== undefined ? String(linha[mapa.modelo] || '').trim() : '';
+        if (!modelo) continue;
+        var preco = mapa.preco !== undefined ? parseValorCelula(linha[mapa.preco]) : null;
+        var cor = mapa.cor !== undefined ? String(linha[mapa.cor] || '').trim() : '';
+        var variante = mapa.variante !== undefined ? String(linha[mapa.variante] || '').trim() : '';
+        var categoriaTexto = mapa.categoria !== undefined ? String(linha[mapa.categoria] || '') : '';
+        var categoria = detectarCategoria(normalizarTexto(categoriaTexto)) || categoriaPadrao;
+        var condicaoTexto = mapa.condicao !== undefined ? String(linha[mapa.condicao] || '') : '';
+        var condicao = detectarCondicaoUsado(normalizarTexto(condicaoTexto)) ? 'Usado' : 'Novo';
+
+        ofertas.push({
+          categoria: categoria || '',
+          condicao: condicao,
+          modelo: modelo,
+          cor: cor,
+          variante: variante,
+          valor_num: preco,
+          confianca: (categoria && preco !== null) ? 'alta' : 'baixa',
+        });
+      }
+
+      ofertasAtuais = ofertas;
+      renderRevisao([]);
+      if (!ofertas.length) {
+        alert('Nenhuma linha com Modelo preenchido foi encontrada nessa planilha.');
+      }
+    };
+
+    window.publicarEstoque = async function() {
+      var btn = document.getElementById('btn-publicar');
+      var prontas = ofertasAtuais.filter(function(o) { return o.categoria && o.modelo && precoValido(o); });
+      if (!prontas.length) { alert('Nenhuma oferta pronta pra publicar — preenche categoria, modelo e preço de pelo menos uma linha.'); return; }
+      if (prontas.length !== ofertasAtuais.length) {
+        if (!confirm((ofertasAtuais.length - prontas.length) + ' linha(s) sem categoria/modelo/preço vão ser ignoradas. Publicar mesmo assim?')) return;
+      }
+      btn.disabled = true; btn.textContent = 'Publicando…';
+      try {
+        var payload = prontas.map(function(o) {
+          return {
+            categoria: o.categoria, condicao: o.condicao, modelo: o.modelo,
+            cor: o.cor || null, variante: o.variante || null,
+            valor: formatarValor(o.valor_num), valor_num: o.valor_num,
+          };
+        });
+        var { data, error } = await supabase.rpc('publicar_estoque_fornecedor', { p_ofertas: payload });
+        if (error) { alert('Erro ao publicar: ' + error.message); btn.disabled = false; btn.textContent = 'Publicar ofertas'; return; }
+        document.getElementById('msg-sucesso-wrap').innerHTML =
+          '<div class="msg-sucesso">✓ ' + data + ' oferta(s) publicada(s) com sucesso! Já estão visíveis no Conecta Lojista.</div>';
+        document.getElementById('lista-colada').value = '';
+        ofertasAtuais = [];
+        document.getElementById('area-revisao').style.display = 'none';
+      } catch (e) {
+        alert('Erro ao publicar: ' + e.message);
+      }
+      btn.disabled = false; btn.textContent = 'Publicar ofertas';
     };
 
     // Fonte única de verdade: o supabase-js dispara este callback imediatamente
