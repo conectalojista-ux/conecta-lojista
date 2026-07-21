@@ -384,9 +384,43 @@
       return cor.charAt(0).toUpperCase() + cor.slice(1);
     }
 
+    // Muitos fornecedores usam so o emoji de bolinha/coracao colorido, sem
+    // escrever o nome da cor (ex: "🤍🖤🧡R$5150,00") — sem isso, a linha
+    // parecia "so preco" e a cor sumia por completo.
+    var EMOJI_CORES = {
+      '⚪': 'Branco', '🤍': 'Branco', '⚪️': 'Branco',
+      '⚫': 'Preto', '🖤': 'Preto', '⚫️': 'Preto',
+      '🔵': 'Azul', '💙': 'Azul',
+      '🟣': 'Roxo', '💜': 'Roxo',
+      '🔴': 'Vermelho', '❤️': 'Vermelho', '❤': 'Vermelho', '🍎': 'Vermelho',
+      '🟢': 'Verde', '💚': 'Verde', '🍏': 'Verde',
+      '🟡': 'Amarelo', '💛': 'Amarelo',
+      '🟠': 'Laranja', '🧡': 'Laranja',
+      '🩶': 'Cinza', '🔘': 'Cinza',
+      '🩷': 'Rosa', '🌸': 'Rosa', '💗': 'Rosa', '💕': 'Rosa', '🩵': 'Azul',
+      '🤎': 'Marrom', '🟤': 'Marrom',
+      '🐪': 'Deserto',
+    };
+
+    // Uma linha pode ter mais de uma cor emoji compartilhando o mesmo preco
+    // (ex: "🤍🖤🧡R$5150,00" = Branco, Preto e Laranja no mesmo valor) —
+    // por isso retorna uma LISTA, nao uma cor so. Array.from() (nao length/
+    // indice direto) e necessario pra nao quebrar emoji de mais de 1 code
+    // point no meio.
+    function extrairCores(linha) {
+      var porEmoji = [];
+      Array.from(linha).forEach(function(ch) {
+        var nome = EMOJI_CORES[ch];
+        if (nome && porEmoji.indexOf(nome) === -1) porEmoji.push(nome);
+      });
+      if (porEmoji.length) return porEmoji;
+      var corTexto = extrairCor(linha);
+      return corTexto ? [corTexto] : [];
+    }
+
     function ehLinhaDePrecoPuro(linha) {
       var preco = extrairPreco(linha);
-      if (preco === null || extrairCor(linha)) return false;
+      if (preco === null || extrairCores(linha).length) return false;
       // Linha com preco E bastante texto (ex: "Apple pencil pro 💵720") nao e
       // "so preco" — e um item de uma linha so, com nome e preco juntos.
       var semPreco = linha.replace(/(?:R\$|💵)\s?[\d.,]+/, '');
@@ -458,7 +492,7 @@
 
       var modeloIdx = -1;
       for (var i = 0; i < linhasUteis.length; i++) {
-        if (!extrairCor(linhasUteis[i]) && !ehLinhaDePrecoPuro(linhasUteis[i])) { modeloIdx = i; break; }
+        if (!extrairCores(linhasUteis[i]).length && !ehLinhaDePrecoPuro(linhasUteis[i])) { modeloIdx = i; break; }
       }
       if (modeloIdx === -1) { naoReconhecido.push(blocoOriginal); return; }
 
@@ -473,10 +507,14 @@
         if (j === modeloIdx) continue;
         var linha = linhasUteis[j];
         var precoDaLinha = extrairPreco(linha);
-        var corDaLinha = extrairCor(linha);
-        if (corDaLinha) {
+        var coresDaLinha = extrairCores(linha);
+        if (coresDaLinha.length) {
           var precoResolvido = precoDaLinha !== null ? precoDaLinha : precoPadrao;
-          variantes.push({ cor: corDaLinha, preco: precoResolvido, herdado: precoDaLinha === null });
+          // varias cores emoji na mesma linha compartilham o mesmo preco
+          // (ex: "🤍🖤🧡R$5150,00" = 3 variantes, mesmo valor)
+          coresDaLinha.forEach(function(cor) {
+            variantes.push({ cor: cor, preco: precoResolvido, herdado: precoDaLinha === null });
+          });
           if (precoDaLinha !== null) precoPadrao = precoDaLinha;
         } else if (precoDaLinha !== null) {
           precoPadrao = precoDaLinha;
