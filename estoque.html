@@ -48,6 +48,14 @@
     }
     input:focus { border-color:var(--green); }
     input::placeholder { color:#5a5a60; }
+    .campo-senha { position:relative; }
+    .campo-senha input { padding-right:44px; }
+    .toggle-senha {
+      position:absolute; right:4px; top:50%; transform:translateY(-50%);
+      width:34px; height:34px; margin:0; padding:0; background:none; border:none;
+      color:var(--gray); font-size:16px; display:flex; align-items:center; justify-content:center;
+    }
+    .toggle-senha:hover { color:var(--text); opacity:1; }
     select {
       width:100%; padding:11px 14px; border-radius:10px;
       border:1.5px solid var(--border); background:var(--field); color:var(--text);
@@ -175,7 +183,10 @@
       <label>E-mail</label>
       <input type="email" id="email" placeholder="seu@email.com" autocomplete="username">
       <label>Senha</label>
-      <input type="password" id="senha" placeholder="••••••••" autocomplete="current-password">
+      <div class="campo-senha">
+        <input type="password" id="senha" placeholder="••••••••" autocomplete="current-password">
+        <button type="button" class="toggle-senha" onclick="toggleSenha('senha', this)" aria-label="Mostrar senha">👁</button>
+      </div>
       <div class="err" id="err"></div>
       <button id="btn-entrar" onclick="doLogin()">Entrar</button>
     </div>
@@ -255,9 +266,15 @@
       <h1>Defina sua senha</h1>
       <p class="sub">Essa é a primeira vez que você entra — cria uma senha pra usar daqui pra frente.</p>
       <label>Nova senha</label>
-      <input type="password" id="nova-senha" placeholder="mínimo 6 caracteres" autocomplete="new-password">
+      <div class="campo-senha">
+        <input type="password" id="nova-senha" placeholder="mínimo 6 caracteres" autocomplete="new-password">
+        <button type="button" class="toggle-senha" onclick="toggleSenha('nova-senha', this)" aria-label="Mostrar senha">👁</button>
+      </div>
       <label>Confirme a senha</label>
-      <input type="password" id="confirma-senha" placeholder="repete a senha" autocomplete="new-password">
+      <div class="campo-senha">
+        <input type="password" id="confirma-senha" placeholder="repete a senha" autocomplete="new-password">
+        <button type="button" class="toggle-senha" onclick="toggleSenha('confirma-senha', this)" aria-label="Mostrar senha">👁</button>
+      </div>
       <div class="err" id="err-senha"></div>
       <button id="btn-definir-senha" onclick="doSetPassword()">Salvar senha e entrar</button>
     </div>
@@ -290,6 +307,14 @@
       document.getElementById('welcome-nome').textContent = res.data.nome_fantasia;
       show('view-estoque');
     }
+
+    window.toggleSenha = function(inputId, btn) {
+      var input = document.getElementById(inputId);
+      var mostrando = input.type === 'text';
+      input.type = mostrando ? 'password' : 'text';
+      btn.textContent = mostrando ? '👁' : '🙈';
+      btn.setAttribute('aria-label', mostrando ? 'Mostrar senha' : 'Ocultar senha');
+    };
 
     window.doLogin = async function() {
       var email = document.getElementById('email').value.trim();
