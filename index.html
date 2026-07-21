@@ -2028,7 +2028,38 @@
     }
     if (fetched !== null) _contacts = fetched;
     applyContacts();
+
+    // Autocorreção: o id de cada oferta não é estável entre rodadas do
+    // scraper (troca atômica recria as linhas com id novo) — se o
+    // catálogo em cache local (allData) for de uma rodada anterior à do
+    // ofertas_contatos() que acabou de responder, o casamento por id
+    // falha pra quase tudo e o assinante vê "sem contato" mesmo pagando
+    // em dia. Se a maioria das ofertas ficou sem telefone, o cache local
+    // está desincronizado — busca tudo de novo (sem cache) uma única vez
+    // e corrige sozinho, sem o cliente precisar fazer nada.
+    if (fetched !== null && allData.length && !_resyncTentado) {
+      var semContato = allData.filter(function(o){ return !o.telefone; }).length;
+      if (semContato / allData.length > 0.5) {
+        _resyncTentado = true;
+        try {
+          var dadosNovos = await loadAll();
+          if (dadosNovos && dadosNovos.length) {
+            allData = dadosNovos;
+            try {
+              var lastRun = await fetchLastRunFinishedAt();
+              localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), run: lastRun, data: dadosNovos }));
+            } catch (e) {}
+            applyContacts();
+            populateCounts();
+            populateDynamicFilters();
+            updateGlobalStats();
+            render();
+          }
+        } catch (e) { /* mantem o que ja tinha — melhor que travar a pagina */ }
+      }
+    }
   }
+  var _resyncTentado = false;
   function applyContacts() {
     allData.forEach(function(o) {
       var c = _contacts[String(o.id)];
