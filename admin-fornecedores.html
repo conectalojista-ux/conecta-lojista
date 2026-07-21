@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aprovar Fornecedores — Conecta Lojista</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green:#22c55e; --green-dark:#052e16;
+      --bg:#0a0a0b; --card:#131316; --field:#17171a;
+      --text:#f5f5f5; --gray:#a1a1aa; --border:rgba(255,255,255,.08);
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      background:var(--bg); color:var(--text); min-height:100vh;
+      padding:20px; -webkit-font-smoothing:antialiased;
+    }
+    .wrap { max-width:900px; margin:40px auto; }
+    .box-login { max-width:380px; margin:80px auto; background:var(--card); border:1px solid var(--border); border-radius:20px; padding:32px 28px; }
+    h1 { font-size:20px; margin-bottom:6px; }
+    p.sub { color:var(--gray); font-size:13px; margin-bottom:20px; line-height:1.5; }
+    label { font-size:11.5px; font-weight:600; color:var(--gray); text-transform:uppercase; letter-spacing:.04em; display:block; margin-bottom:6px; }
+    input {
+      width:100%; padding:11px 14px; border-radius:10px;
+      border:1.5px solid var(--border); background:var(--field); color:var(--text);
+      font-size:14px; outline:none; margin-bottom:16px; font-family:inherit;
+    }
+    input:focus { border-color:var(--green); }
+    button {
+      padding:11px 20px; background:var(--green); color:var(--green-dark);
+      border:none; border-radius:10px; font-size:14px; font-weight:700;
+      cursor:pointer; font-family:inherit;
+    }
+    button:hover { opacity:.88; }
+    button:disabled { opacity:.5; cursor:default; }
+    .btn-rejeitar { background:none; border:1.5px solid var(--border); color:#f87171; margin-left:8px; }
+    .err { color:#f87171; font-size:12.5px; min-height:16px; margin:-8px 0 12px; }
+    .loading { text-align:center; color:var(--gray); font-size:13px; padding:40px 0; }
+    .card-pendente {
+      background:var(--card); border:1px solid var(--border); border-radius:14px;
+      padding:16px 20px; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; gap:16px;
+    }
+    .card-pendente .info h3 { font-size:15px; margin-bottom:4px; }
+    .card-pendente .info p { color:var(--gray); font-size:13px; }
+    .vazio { color:var(--gray); font-size:13px; text-align:center; padding:40px 0; }
+  </style>
+</head>
+<body>
+  <div id="view-login-admin" class="box-login">
+    <h1>Aprovar Fornecedores</h1>
+    <p class="sub">Acesso restrito.</p>
+    <label>E-mail</label>
+    <input type="email" id="email" placeholder="seu@email.com">
+    <label>Senha</label>
+    <input type="password" id="senha" placeholder="••••••••">
+    <div class="err" id="err"></div>
+    <button onclick="doLogin()">Entrar</button>
+  </div>
+
+  <div id="view-lista" class="wrap" style="display:none">
+    <h1>Fornecedores pendentes de aprovação</h1>
+    <p class="sub" id="contagem"></p>
+    <div id="lista-pendentes"><div class="loading">Carregando…</div></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+  (function() {
+    var SUPA_URL = 'https://desfdtxbvuqazvsrmhwp.supabase.co';
+    var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlc2ZkdHhidnVxYXp2c3JtaHdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5OTE2NDQsImV4cCI6MjA5NzU2NzY0NH0.1O6oPuah6r2j7XGdWrZNyU5JYIVBjA-UwAT9UrF8hy0';
+    var supabase = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+    var ADMIN_EMAIL = 'lucasmd@outlook.com.br';
+
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    window.doLogin = async function() {
+      var email = document.getElementById('email').value.trim();
+      var senha = document.getElementById('senha').value;
+      var err = document.getElementById('err');
+      err.textContent = '';
+      var { data, error } = await supabase.auth.signInWithPassword({ email: email, password: senha });
+      if (error) { err.textContent = 'E-mail ou senha incorretos.'; return; }
+      if (data.user.email !== ADMIN_EMAIL) {
+        err.textContent = 'Essa conta não tem acesso a essa página.';
+        await supabase.auth.signOut();
+        return;
+      }
+      mostrarLista();
+    };
+
+    async function mostrarLista() {
+      document.getElementById('view-login-admin').style.display = 'none';
+      document.getElementById('view-lista').style.display = 'block';
+      await carregarPendentes();
+    }
+
+    async function carregarPendentes() {
+      var wrap = document.getElementById('lista-pendentes');
+      wrap.innerHTML = '<div class="loading">Carregando…</div>';
+      var res = await supabase.rpc('listar_fornecedores_pendentes');
+      if (res.error) {
+        wrap.innerHTML = '<div class="vazio">Erro ao carregar: ' + esc(res.error.message) + '</div>';
+        return;
+      }
+      var pendentes = res.data || [];
+      document.getElementById('contagem').textContent = pendentes.length + ' fornecedor(es) aguardando aprovação';
+      if (!pendentes.length) {
+        wrap.innerHTML = '<div class="vazio">Nenhum fornecedor pendente no momento.</div>';
+        return;
+      }
+      wrap.innerHTML = pendentes.map(function(f) {
+        var data = new Date(f.created_at).toLocaleString('pt-BR');
+        return '<div class="card-pendente" id="card-' + f.id + '">' +
+          '<div class="info"><h3>' + esc(f.nome_fantasia) + '</h3>' +
+          '<p>' + esc(f.cidade) + ', ' + esc(f.estado) + ' · WhatsApp ' + esc(f.whatsapp) + ' · cadastrado em ' + data + '</p></div>' +
+          '<div><button onclick="aprovar(\'' + f.id + '\')">Aprovar</button>' +
+          '<button class="btn-rejeitar" onclick="rejeitar(\'' + f.id + '\')">Rejeitar</button></div>' +
+          '</div>';
+      }).join('');
+    }
+
+    window.aprovar = async function(id) {
+      var res = await supabase.rpc('aprovar_fornecedor', { p_id: id });
+      if (res.error) { alert('Erro: ' + res.error.message); return; }
+      document.getElementById('card-' + id).remove();
+      carregarPendentes();
+    };
+
+    window.rejeitar = async function(id) {
+      if (!confirm('Rejeitar esse cadastro?')) return;
+      var res = await supabase.rpc('rejeitar_fornecedor', { p_id: id });
+      if (res.error) { alert('Erro: ' + res.error.message); return; }
+      document.getElementById('card-' + id).remove();
+      carregarPendentes();
+    };
+
+    supabase.auth.onAuthStateChange(function(event, session) {
+      if (session && session.user.email === ADMIN_EMAIL) mostrarLista();
+    });
+  })();
+  </script>
+</body>
+</html>

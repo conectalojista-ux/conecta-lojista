@@ -189,6 +189,44 @@
       </div>
       <div class="err" id="err"></div>
       <button id="btn-entrar" onclick="doLogin()">Entrar</button>
+      <p class="sub" style="margin:14px 0 0;text-align:center">Não tem conta? <a href="#" onclick="show('view-cadastro');return false" style="color:var(--green)">Cadastre-se</a></p>
+    </div>
+
+    <div id="view-cadastro" style="display:none">
+      <h1>Cadastrar como fornecedor</h1>
+      <p class="sub">Preenche seus dados — sua conta fica em análise e você recebe acesso assim que for aprovada.</p>
+      <label>Nome fantasia</label>
+      <input type="text" id="cad-nome" placeholder="Nome da sua loja">
+      <label>WhatsApp (com DDD)</label>
+      <input type="tel" id="cad-whatsapp" placeholder="(11) 99999-9999" inputmode="tel">
+      <label>Cidade</label>
+      <input type="text" id="cad-cidade" placeholder="São Paulo">
+      <label>Estado</label>
+      <input type="text" id="cad-estado" placeholder="SP" maxlength="2" style="text-transform:uppercase">
+      <label>E-mail</label>
+      <input type="email" id="cad-email" placeholder="seu@email.com" autocomplete="username">
+      <label>Senha</label>
+      <div class="campo-senha">
+        <input type="password" id="cad-senha" placeholder="mínimo 6 caracteres" autocomplete="new-password">
+        <button type="button" class="toggle-senha" onclick="toggleSenha('cad-senha', this)" aria-label="Mostrar senha">👁</button>
+      </div>
+      <div class="err" id="err-cadastro"></div>
+      <button id="btn-cadastrar" onclick="doCadastro()">Criar conta</button>
+      <p class="sub" style="margin:14px 0 0;text-align:center">Já tem conta? <a href="#" onclick="show('view-login');return false" style="color:var(--green)">Entrar</a></p>
+    </div>
+
+    <div id="view-cadastro-sucesso" style="display:none" class="center">
+      <div class="icon-circle">📧</div>
+      <h2>Confirme seu e-mail</h2>
+      <p>Enviamos um link de confirmação. Depois de confirmar, sua conta fica em análise — você recebe acesso assim que for aprovada.</p>
+      <button class="btn-secondary" onclick="doLogout()">Voltar pro login</button>
+    </div>
+
+    <div id="view-pendente" style="display:none" class="center">
+      <div class="icon-circle">⏳</div>
+      <h2>Cadastro em análise</h2>
+      <p>Recebemos seu cadastro. Assim que for aprovado, você já pode publicar sua lista por aqui.</p>
+      <button class="btn-secondary" onclick="doLogout()">Sair</button>
     </div>
 
     <div id="view-estoque" style="display:none">
@@ -288,21 +326,38 @@
     var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlc2ZkdHhidnVxYXp2c3JtaHdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5OTE2NDQsImV4cCI6MjA5NzU2NzY0NH0.1O6oPuah6r2j7XGdWrZNyU5JYIVBjA-UwAT9UrF8hy0';
     var supabase = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
+    var TODAS_VIEWS = ['view-checking', 'view-login', 'view-cadastro', 'view-cadastro-sucesso',
+      'view-pendente', 'view-estoque', 'view-denied', 'view-setpassword'];
     function show(id) {
-      ['view-checking', 'view-login', 'view-estoque', 'view-denied', 'view-setpassword'].forEach(function(v) {
+      TODAS_VIEWS.forEach(function(v) {
         document.getElementById(v).style.display = (v === id) ? 'block' : 'none';
       });
       document.getElementById('box').classList.toggle('box-wide', id === 'view-estoque');
     }
+    window.show = show; // usado direto em onclick="show(...)" nos links de trocar de tela
 
     var currentUser = null;
 
     async function checkSupplier(user) {
       var res = await supabase.from('suppliers').select('nome_fantasia,status').eq('id', user.id).single();
-      if (res.error || !res.data || res.data.status !== 'ativo') {
-        show('view-denied');
-        return;
+
+      // Conta nova vinda do formulario de autocadastro (view-cadastro) e que
+      // ainda nao tem linha em suppliers — cria como pendente agora que a
+      // sessao (pos confirmacao de e-mail) existe de verdade.
+      if ((res.error || !res.data) && user.user_metadata && user.user_metadata.tipo_cadastro === 'fornecedor') {
+        await supabase.rpc('cadastrar_fornecedor', {
+          p_nome_fantasia: user.user_metadata.nome_fantasia || '',
+          p_whatsapp: user.user_metadata.whatsapp || '',
+          p_cidade: user.user_metadata.cidade || '',
+          p_estado: user.user_metadata.estado || '',
+        });
+        res = await supabase.from('suppliers').select('nome_fantasia,status').eq('id', user.id).single();
       }
+
+      if (res.error || !res.data) { show('view-denied'); return; }
+      if (res.data.status === 'pendente') { show('view-pendente'); return; }
+      if (res.data.status !== 'ativo') { show('view-denied'); return; }
+
       currentUser = user;
       document.getElementById('welcome-nome').textContent = res.data.nome_fantasia;
       show('view-estoque');
@@ -314,6 +369,36 @@
       input.type = mostrando ? 'password' : 'text';
       btn.textContent = mostrando ? '👁' : '🙈';
       btn.setAttribute('aria-label', mostrando ? 'Mostrar senha' : 'Ocultar senha');
+    };
+
+    window.doCadastro = async function() {
+      var nome = document.getElementById('cad-nome').value.trim();
+      var whatsapp = document.getElementById('cad-whatsapp').value.replace(/\D/g, '');
+      var cidade = document.getElementById('cad-cidade').value.trim();
+      var estado = document.getElementById('cad-estado').value.trim().toUpperCase();
+      var email = document.getElementById('cad-email').value.trim();
+      var senha = document.getElementById('cad-senha').value;
+      var err = document.getElementById('err-cadastro');
+      err.textContent = '';
+
+      if (!nome) { err.textContent = 'Informe o nome fantasia da sua loja.'; return; }
+      if (whatsapp.length < 10 || whatsapp.length > 13) { err.textContent = 'Informe um WhatsApp válido com DDD.'; return; }
+      if (!cidade || estado.length !== 2) { err.textContent = 'Informe cidade e estado (sigla, ex: SP).'; return; }
+      if (!email) { err.textContent = 'Informe um e-mail válido.'; return; }
+      if (!senha || senha.length < 6) { err.textContent = 'A senha precisa ter ao menos 6 caracteres.'; return; }
+
+      var btn = document.getElementById('btn-cadastrar');
+      btn.disabled = true; btn.textContent = 'Criando…';
+      var { error } = await supabase.auth.signUp({
+        email: email, password: senha,
+        options: { data: {
+          tipo_cadastro: 'fornecedor',
+          nome_fantasia: nome, whatsapp: whatsapp, cidade: cidade, estado: estado,
+        } },
+      });
+      btn.disabled = false; btn.textContent = 'Criar conta';
+      if (error) { err.textContent = error.message; return; }
+      show('view-cadastro-sucesso');
     };
 
     window.doLogin = async function() {
