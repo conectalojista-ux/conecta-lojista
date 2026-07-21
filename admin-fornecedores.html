@@ -166,14 +166,18 @@
         return;
       }
       wrap.innerHTML = fornecedores.map(function(f) {
+        var nomeJs = esc(f.nome_fantasia).replace(/'/g, "\\'");
         return '<div class="card-pendente" id="ftodos-' + f.id + '">' +
           '<div class="info"><h3>' + esc(f.nome_fantasia) +
           '<span class="badge-status badge-' + esc(f.status) + '">' + esc(f.status) + '</span></h3>' +
           '<p>' + esc(f.cidade) + ', ' + esc(f.estado) + ' · WhatsApp ' + esc(f.whatsapp) + ' · ' + f.total_ofertas + ' oferta(s) publicada(s)</p></div>' +
+          '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
           (f.total_ofertas > 0
-            ? '<button class="btn-apagar" onclick="apagarLista(\'' + f.id + '\', \'' + esc(f.nome_fantasia).replace(/'/g, "\\'") + '\', ' + f.total_ofertas + ')">Apagar lista</button>'
+            ? '<button class="btn-apagar" onclick="apagarLista(\'' + f.id + '\', \'' + nomeJs + '\', ' + f.total_ofertas + ')">Apagar lista</button>'
             : '') +
-          '</div>';
+          '<button class="btn-rejeitar" onclick="renomear(\'' + f.id + '\', \'' + nomeJs + '\')">Renomear</button>' +
+          '<button class="btn-apagar" onclick="apagarFornecedor(\'' + f.id + '\', \'' + nomeJs + '\')">Apagar fornecedor</button>' +
+          '</div></div>';
       }).join('');
     }
 
@@ -183,6 +187,22 @@
       if (res.error) { alert('Erro: ' + res.error.message); return; }
       alert(res.data + ' oferta(s) removida(s).');
       carregarTodos();
+    };
+
+    window.renomear = async function(id, nomeAtual) {
+      var novoNome = prompt('Novo nome fantasia:', nomeAtual);
+      if (!novoNome || !novoNome.trim() || novoNome.trim() === nomeAtual) return;
+      var res = await supabase.rpc('admin_renomear_fornecedor', { p_id: id, p_novo_nome: novoNome.trim() });
+      if (res.error) { alert('Erro: ' + res.error.message); return; }
+      carregarTodos();
+    };
+
+    window.apagarFornecedor = async function(id, nome) {
+      if (!confirm('Apagar o fornecedor "' + nome + '" por completo? Isso remove a conta dele, o cadastro e todas as ofertas publicadas — não tem como desfazer. Ele precisaria se cadastrar de novo do zero.')) return;
+      var res = await supabase.rpc('admin_apagar_fornecedor', { p_id: id });
+      if (res.error) { alert('Erro: ' + res.error.message); return; }
+      document.getElementById('ftodos-' + id).remove();
+      alert('Fornecedor removido.');
     };
 
     window.aprovar = async function(id) {
