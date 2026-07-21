@@ -250,6 +250,7 @@
       <div class="tabs-modo">
         <button type="button" class="tab-modo active" id="tab-colar" onclick="selecionarModo('colar')">Colar lista do WhatsApp</button>
         <button type="button" class="tab-modo" id="tab-planilha" onclick="selecionarModo('planilha')">Importar planilha (Excel/CSV)</button>
+        <button type="button" class="tab-modo" id="tab-meusprodutos" onclick="selecionarModo('meusprodutos')">Meus produtos publicados</button>
       </div>
 
       <div id="modo-colar">
@@ -261,6 +262,18 @@
         <p class="sub">Importa um arquivo .xlsx ou .csv com seus produtos. Você escolhe qual coluna é qual antes de continuar.</p>
         <input type="file" id="input-planilha" accept=".xlsx,.xls,.csv" onchange="processarPlanilha(event)">
         <div id="mapeamento-planilha" style="display:none"></div>
+      </div>
+
+      <div id="modo-meusprodutos" style="display:none">
+        <p class="sub" id="meus-produtos-resumo">Carregando…</p>
+        <div class="tabela-wrap">
+          <table class="rev">
+            <thead>
+              <tr><th>Categoria</th><th>Condição</th><th>Modelo</th><th>Cor</th><th>Capacidade</th><th>Preço (R$)</th></tr>
+            </thead>
+            <tbody id="tbody-meus-produtos"></tbody>
+          </table>
+        </div>
       </div>
 
       <div id="msg-sucesso-wrap"></div>
@@ -830,9 +843,38 @@
     window.selecionarModo = function(modo) {
       document.getElementById('tab-colar').classList.toggle('active', modo === 'colar');
       document.getElementById('tab-planilha').classList.toggle('active', modo === 'planilha');
+      document.getElementById('tab-meusprodutos').classList.toggle('active', modo === 'meusprodutos');
       document.getElementById('modo-colar').style.display = modo === 'colar' ? 'block' : 'none';
       document.getElementById('modo-planilha').style.display = modo === 'planilha' ? 'block' : 'none';
+      document.getElementById('modo-meusprodutos').style.display = modo === 'meusprodutos' ? 'block' : 'none';
+      if (modo === 'meusprodutos') carregarMeusProdutos();
     };
+
+    async function carregarMeusProdutos() {
+      var tbody = document.getElementById('tbody-meus-produtos');
+      var resumo = document.getElementById('meus-produtos-resumo');
+      resumo.textContent = 'Carregando…';
+      tbody.innerHTML = '';
+      var res = await supabase.rpc('meu_estoque_atual');
+      if (res.error) {
+        resumo.textContent = 'Não consegui carregar seus produtos agora — tenta de novo em instantes.';
+        return;
+      }
+      var produtos = (res.data || []).slice().sort(function(a, b) {
+        return (a.categoria + a.modelo).localeCompare(b.categoria + b.modelo);
+      });
+      resumo.textContent = produtos.length
+        ? produtos.length + ' produto(s) publicado(s) atualmente no Conecta Lojista.'
+        : 'Você ainda não publicou nenhum produto.';
+      tbody.innerHTML = produtos.map(function(o) {
+        return '<tr><td>' + esc(CAT_LABELS[o.categoria] || o.categoria) + '</td>' +
+          '<td>' + esc(o.condicao || '') + '</td>' +
+          '<td>' + esc(o.modelo) + '</td>' +
+          '<td>' + esc(o.cor || '') + '</td>' +
+          '<td>' + esc(o.variante || '') + '</td>' +
+          '<td>' + (o.valor_num != null ? Number(o.valor_num).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '') + '</td></tr>';
+      }).join('');
+    }
 
     window.processarPlanilha = function(event) {
       var file = event.target.files[0];
