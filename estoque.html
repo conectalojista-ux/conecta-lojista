@@ -90,6 +90,24 @@
     }
     .btn-secondary:hover { border-color:#3a3a40; opacity:1; color:var(--text); }
     .loading { text-align:center; color:var(--gray); font-size:13px; padding:20px 0; }
+    .check-linha {
+      display:flex; align-items:flex-start; gap:9px; font-size:12.5px; font-weight:400;
+      text-transform:none; letter-spacing:normal; color:var(--gray); margin-bottom:12px; cursor:pointer;
+      line-height:1.5;
+    }
+    .check-linha input { width:auto; margin:2px 0 0; flex-shrink:0; accent-color:var(--green); }
+    .pos-cadastro {
+      text-align:left; background:var(--field); border:1px solid var(--border); border-radius:12px;
+      padding:16px 18px; margin:18px 0 4px;
+    }
+    .pos-cadastro-titulo { font-size:11.5px; font-weight:700; color:var(--gray); text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px; }
+    .pos-cadastro-lista { list-style:none; display:flex; flex-direction:column; gap:9px; }
+    .pos-cadastro-lista li { font-size:13px; color:var(--text); line-height:1.5; padding-left:18px; position:relative; }
+    .pos-cadastro-lista li::before { content:'✓'; position:absolute; left:0; color:var(--green); font-weight:700; }
+    .selo-verificado {
+      display:inline-flex; align-items:center; gap:5px; background:rgba(34,197,94,.14); color:var(--green);
+      font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px;
+    }
 
     /* ── ÁREA DE ESTOQUE ─────────────────────────────────── */
     .estoque-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
@@ -194,8 +212,10 @@
 
     <div id="view-cadastro" style="display:none">
       <h1>Cadastrar como fornecedor</h1>
-      <p class="sub">Preenche seus dados — sua conta fica em análise e você recebe acesso assim que for aprovada.</p>
-      <label>Nome fantasia</label>
+      <p class="sub">Leva menos de 1 minuto.<br>
+        Apenas fornecedores aprovados conseguem publicar produtos no Conecta Lojista.<br>
+        Seu cadastro passa por uma rápida análise manual para proteger nossos lojistas.</p>
+      <label>Nome da Empresa</label>
       <input type="text" id="cad-nome" placeholder="Nome da sua loja">
       <label>WhatsApp (com DDD)</label>
       <input type="tel" id="cad-whatsapp" placeholder="(11) 99999-9999" inputmode="tel">
@@ -205,20 +225,31 @@
       <input type="text" id="cad-estado" placeholder="SP" maxlength="2" style="text-transform:uppercase">
       <label>E-mail</label>
       <input type="email" id="cad-email" placeholder="seu@email.com" autocomplete="username">
-      <label>Senha</label>
+      <label>Crie sua senha</label>
       <div class="campo-senha">
         <input type="password" id="cad-senha" placeholder="mínimo 6 caracteres" autocomplete="new-password">
         <button type="button" class="toggle-senha" onclick="toggleSenha('cad-senha', this)" aria-label="Mostrar senha">👁</button>
       </div>
+      <label class="check-linha"><input type="checkbox" id="cad-termos"> Li e aceito os <a href="termos.html" target="_blank" style="color:var(--green)">Termos de Uso</a>.</label>
+      <label class="check-linha"><input type="checkbox" id="cad-responsavel"> Confirmo que sou responsável pelos produtos publicados e informações cadastradas na plataforma.</label>
       <div class="err" id="err-cadastro"></div>
-      <button id="btn-cadastrar" onclick="doCadastro()">Criar conta</button>
+      <button id="btn-cadastrar" onclick="doCadastro()">Solicitar acesso</button>
       <p class="sub" style="margin:14px 0 0;text-align:center">Já tem conta? <a href="#" onclick="show('view-login');return false" style="color:var(--green)">Entrar</a></p>
     </div>
 
     <div id="view-cadastro-sucesso" style="display:none" class="center">
-      <div class="icon-circle">📧</div>
-      <h2>Confirme seu e-mail</h2>
-      <p>Enviamos um link de confirmação. Depois de confirmar, sua conta fica em análise — você recebe acesso assim que for aprovada.</p>
+      <div class="icon-circle">✓</div>
+      <h2>Cadastro recebido com sucesso!</h2>
+      <p>Sua solicitação foi enviada para análise.</p>
+      <div class="pos-cadastro">
+        <p class="pos-cadastro-titulo">O que acontece agora?</p>
+        <ul class="pos-cadastro-lista">
+          <li>Apenas fornecedores aprovados conseguem publicar produtos.</li>
+          <li>Nossa equipe realizará uma rápida análise das informações cadastradas.</li>
+          <li>Seu WhatsApp e e-mail NÃO ficam públicos para outros usuários da plataforma.</li>
+          <li>Você receberá um aviso assim que sua conta for aprovada.</li>
+        </ul>
+      </div>
       <button class="btn-secondary" onclick="doLogout()">Voltar pro login</button>
     </div>
 
@@ -234,6 +265,27 @@
         <h1 id="welcome-nome"></h1>
         <button class="btn-secondary" onclick="doLogout()">Sair</button>
       </div>
+      <span class="selo-verificado">✓ FORNECEDOR VERIFICADO</span>
+
+      <details class="naoreconhecido" id="wrap-perfil-opcional" style="margin:16px 0">
+        <summary>Completar perfil (opcional)</summary>
+        <div style="margin-top:14px">
+          <label>CNPJ (opcional)</label>
+          <input type="text" id="perfil-cnpj" placeholder="00.000.000/0000-00">
+          <label>Instagram (opcional)</label>
+          <input type="text" id="perfil-instagram" placeholder="@sualoja">
+          <label>Site (opcional)</label>
+          <input type="text" id="perfil-site" placeholder="www.sualoja.com.br">
+          <label>Trabalha com</label>
+          <label class="check-linha"><input type="checkbox" class="perfil-cat" value="Apple"> Apple</label>
+          <label class="check-linha"><input type="checkbox" class="perfil-cat" value="Games"> Games</label>
+          <label class="check-linha"><input type="checkbox" class="perfil-cat" value="Acessórios"> Acessórios</label>
+          <label class="check-linha"><input type="checkbox" class="perfil-cat" value="Outros"> Outros</label>
+          <div class="err" id="err-perfil"></div>
+          <button id="btn-salvar-perfil" onclick="salvarPerfil()" style="width:auto;padding:10px 22px">Salvar</button>
+        </div>
+      </details>
+
       <div class="publicar-intro">
         <h2>Publicar lista de produtos</h2>
         <p class="sub">Publique sua lista em menos de 20 segundos. Basta colar a mesma lista que você já envia no WhatsApp ou importar sua planilha Excel.</p>
@@ -352,7 +404,7 @@
     var currentUser = null;
 
     async function checkSupplier(user) {
-      var res = await supabase.from('suppliers').select('nome_fantasia,status').eq('id', user.id).single();
+      var res = await supabase.from('suppliers').select('nome_fantasia,status,cnpj,instagram,site,categorias').eq('id', user.id).single();
 
       // Conta nova vinda do formulario de autocadastro (view-cadastro) e que
       // ainda nao tem linha em suppliers — cria como pendente agora que a
@@ -364,7 +416,7 @@
           p_cidade: user.user_metadata.cidade || '',
           p_estado: user.user_metadata.estado || '',
         });
-        res = await supabase.from('suppliers').select('nome_fantasia,status').eq('id', user.id).single();
+        res = await supabase.from('suppliers').select('nome_fantasia,status,cnpj,instagram,site,categorias').eq('id', user.id).single();
       }
 
       if (res.error || !res.data) { show('view-denied'); return; }
@@ -373,8 +425,36 @@
 
       currentUser = user;
       document.getElementById('welcome-nome').textContent = res.data.nome_fantasia;
+      preencherPerfilOpcional(res.data);
       show('view-estoque');
     }
+
+    function preencherPerfilOpcional(dados) {
+      document.getElementById('perfil-cnpj').value = dados.cnpj || '';
+      document.getElementById('perfil-instagram').value = dados.instagram || '';
+      document.getElementById('perfil-site').value = dados.site || '';
+      var cats = dados.categorias || [];
+      document.querySelectorAll('.perfil-cat').forEach(function(chk) {
+        chk.checked = cats.indexOf(chk.value) !== -1;
+      });
+    }
+
+    window.salvarPerfil = async function() {
+      var err = document.getElementById('err-perfil');
+      err.textContent = '';
+      var btn = document.getElementById('btn-salvar-perfil');
+      var categorias = Array.from(document.querySelectorAll('.perfil-cat:checked')).map(function(c) { return c.value; });
+      btn.disabled = true; btn.textContent = 'Salvando…';
+      var { error } = await supabase.rpc('atualizar_perfil_fornecedor', {
+        p_cnpj: document.getElementById('perfil-cnpj').value.trim() || null,
+        p_instagram: document.getElementById('perfil-instagram').value.trim() || null,
+        p_site: document.getElementById('perfil-site').value.trim() || null,
+        p_categorias: categorias.length ? categorias : null,
+      });
+      btn.disabled = false; btn.textContent = 'Salvar';
+      if (error) { err.textContent = 'Não consegui salvar agora — tenta de novo em instantes.'; return; }
+      document.getElementById('wrap-perfil-opcional').open = false;
+    };
 
     window.toggleSenha = function(inputId, btn) {
       var input = document.getElementById(inputId);
@@ -394,14 +474,16 @@
       var err = document.getElementById('err-cadastro');
       err.textContent = '';
 
-      if (!nome) { err.textContent = 'Informe o nome fantasia da sua loja.'; return; }
+      if (!nome) { err.textContent = 'Informe o nome da sua empresa.'; return; }
       if (whatsapp.length < 10 || whatsapp.length > 13) { err.textContent = 'Informe um WhatsApp válido com DDD.'; return; }
       if (!cidade || estado.length !== 2) { err.textContent = 'Informe cidade e estado (sigla, ex: SP).'; return; }
       if (!email) { err.textContent = 'Informe um e-mail válido.'; return; }
       if (!senha || senha.length < 6) { err.textContent = 'A senha precisa ter ao menos 6 caracteres.'; return; }
+      if (!document.getElementById('cad-termos').checked) { err.textContent = 'Você precisa aceitar os Termos de Uso.'; return; }
+      if (!document.getElementById('cad-responsavel').checked) { err.textContent = 'Você precisa confirmar a responsabilidade pelos produtos publicados.'; return; }
 
       var btn = document.getElementById('btn-cadastrar');
-      btn.disabled = true; btn.textContent = 'Criando…';
+      btn.disabled = true; btn.textContent = 'Enviando…';
       var { error } = await supabase.auth.signUp({
         email: email, password: senha,
         options: { data: {
@@ -409,7 +491,7 @@
           nome_fantasia: nome, whatsapp: whatsapp, cidade: cidade, estado: estado,
         } },
       });
-      btn.disabled = false; btn.textContent = 'Criar conta';
+      btn.disabled = false; btn.textContent = 'Solicitar acesso';
       if (error) { err.textContent = error.message; return; }
       show('view-cadastro-sucesso');
     };

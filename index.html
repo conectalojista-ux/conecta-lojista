@@ -500,6 +500,10 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .supplier-date { font-size: 11px; color: var(--gray-mid); margin-top: 2px; }
+    .selo-verificado-mini {
+      display:inline-flex; align-items:center; gap:3px; font-size:10px; font-weight:700;
+      color:#16a34a; margin-left:5px; white-space:nowrap;
+    }
 
     .item-price-wrap {
       text-align: right; flex-shrink: 0; min-width: 110px;
@@ -2764,6 +2768,9 @@
     if (!authState.isSubscriber) return '<span class="supplier-masked">••••••••</span>';
     return esc(o.fornecedor||'—');
   }
+  function verifiedBadge(o) {
+    return o.verificado ? '<span class="selo-verificado-mini" title="Fornecedor aprovado pelo Conecta Lojista">✓ Verificado</span>' : '';
+  }
   function supplierCity(o) {
     if (!authState.isSubscriber) {
       // mostra só o estado (sigla após vírgula ou últimas 2 letras)
@@ -2801,7 +2808,7 @@
         '<div class="item-supplier-mobile"><span class="item-supplier-mobile-name">' + supplierName(o) + '</span>' + (o.cidade ? ' · ' + supplierCity(o) : '') + '</div>' +
       '</div>' +
       '<div class="item-supplier">' +
-        '<div class="supplier-name">' + supplierName(o) + '</div>' +
+        '<div class="supplier-name">' + supplierName(o) + verifiedBadge(o) + '</div>' +
         '<div class="supplier-city">' + supplierCity(o) + '</div>' +
         (o.data_atualizacao ? '<div class="supplier-date">atualizado '+esc(o.data_atualizacao)+'</div>' : '') +
       '</div>' +
@@ -2835,7 +2842,7 @@
           '<div class="gc-price">' + priceDisplay(o) + '</div>' +
         '</div>' +
         '<div class="gc-supplier">' +
-          '<strong>' + supplierName(o) + '</strong>' +
+          '<strong>' + supplierName(o) + verifiedBadge(o) + '</strong>' +
           supplierCity(o) +
         '</div>' +
       '</div>' +
