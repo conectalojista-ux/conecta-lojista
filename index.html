@@ -2719,18 +2719,36 @@
      campo variante solto (Eletrônicos/Acessórios: "USB-C", "1un", etc.) */
   function variantOf(o) { return splitModel(o.modelo).cap || o.variante || null; }
 
-  /* Miniatura com dimensões (evita CLS). Sem foto real (ausente ou o
-     placeholder "sem_imagem.png" do buskaphone) ou erro de carregamento:
-     cai pra logo da Conecta Lojista em vez do ícone genérico. */
-  var NO_PHOTO_IMG = 'assets/logoc.png';
-  var NO_PHOTO_STYLE = 'object-fit:contain;padding:8px;opacity:.5';
+  /* Miniatura com dimensões (evita CLS). Sem foto real (ausente, ou o
+     placeholder "sem_imagem.png" do buskaphone, ou ofertas publicadas por
+     fornecedor via colar-lista/planilha — essas nunca têm foto_url) ou erro
+     de carregamento: cai pra um ícone simples por categoria em vez de uma
+     foto genérica, pra não parecer "quebrado" na lista. */
+  var CAT_ICON_COLOR = { iphone:'#5b8def', ipad:'#3fb27f', macbook:'#8a8a95', watch:'#e08a3c', eletronicos:'#9b7cd1', acessorios:'#e0709a' };
+  var CAT_ICON_PATH = {
+    iphone: '<rect x="7.5" y="2" width="9" height="20" rx="2"/><line x1="10.5" y1="19" x2="13.5" y2="19"/>',
+    ipad: '<rect x="4" y="3" width="16" height="18" rx="2"/><line x1="10.7" y1="19" x2="13.3" y2="19"/>',
+    macbook: '<rect x="5" y="4" width="14" height="10.5" rx="1"/><path d="M2.5 17.5h19l-1.4 2.2a1 1 0 01-.85.5H4.75a1 1 0 01-.85-.5z"/>',
+    watch: '<rect x="7.5" y="7" width="9" height="10" rx="2.5"/><path d="M9.5 7V4.2a1 1 0 011-1h3a1 1 0 011 1V7M9.5 17v2.8a1 1 0 001 1h3a1 1 0 001-1V17"/><line x1="16.5" y1="10.3" x2="18" y2="10.3"/><line x1="16.5" y1="13.7" x2="18" y2="13.7"/>',
+    acessorios: '<path d="M4 13a8 8 0 0116 0"/><rect x="2.5" y="13" width="4" height="6" rx="1.5"/><rect x="17.5" y="13" width="4" height="6" rx="1.5"/>',
+    eletronicos: '<rect x="3" y="6" width="18" height="12" rx="2"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="12" y1="10" x2="12" y2="14"/><line x1="16" y1="10" x2="16" y2="14"/>',
+  };
+  function categoryIcon(cat, w, h) {
+    var color = CAT_ICON_COLOR[cat] || '#9aa0a6';
+    var path = CAT_ICON_PATH[cat] || CAT_ICON_PATH.eletronicos;
+    var size = Math.round(Math.min(w, h) * 0.52);
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" ' +
+      'stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>';
+  }
+  window.__catIconFallback = function(el, cat, w, h) {
+    el.outerHTML = categoryIcon(cat, w, h);
+  };
   function imgThumb(o, w, h) {
     var semFoto = !o.foto_url || /sem_imagem/i.test(o.foto_url);
-    var src = semFoto ? NO_PHOTO_IMG : o.foto_url;
-    var style = semFoto ? ' style="' + NO_PHOTO_STYLE + '"' : '';
-    return '<img src="' + esc(src) + '" alt=""' + style + ' width="' + w + '" height="' + h + '" ' +
-      'loading="lazy" decoding="async" ' +
-      'onerror="this.onerror=null;this.src=\'' + NO_PHOTO_IMG + '\';this.style.cssText=\'' + NO_PHOTO_STYLE + '\';">';
+    if (semFoto) return categoryIcon(o.categoria, w, h);
+    return '<img src="' + esc(o.foto_url) + '" alt="" width="' + w + '" height="' + h + '" ' +
+      'style="object-fit:contain" loading="lazy" decoding="async" ' +
+      'onerror="__catIconFallback(this,\'' + esc(o.categoria||'') + '\',' + w + ',' + h + ')">';
   }
 
   /* ── WhatsApp com mensagem pré-preenchida ─────────────── */
