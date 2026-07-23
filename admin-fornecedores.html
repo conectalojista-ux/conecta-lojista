@@ -210,6 +210,11 @@
       if (res.error) { alert('Erro: ' + res.error.message); return; }
       document.getElementById('card-' + id).remove();
       carregarPendentes();
+      // Avisa o fornecedor por e-mail — se falhar, não desfaz a aprovação,
+      // só fica sem notificação (ele descobre ao tentar entrar de novo).
+      try {
+        await supabase.functions.invoke('notificar-fornecedor-aprovado', { body: { supplier_id: id } });
+      } catch (e) { /* aprovação já efetivada, notificação é best-effort */ }
     };
 
     window.rejeitar = async function(id) {
