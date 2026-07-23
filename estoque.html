@@ -402,6 +402,7 @@
     window.show = show; // usado direto em onclick="show(...)" nos links de trocar de tela
 
     var currentUser = null;
+    var suprimirCheckAutomatico = false;
 
     async function checkSupplier(user) {
       var res = await supabase.from('suppliers').select('nome_fantasia,status,cnpj,instagram,site,categorias').eq('id', user.id).single();
@@ -484,6 +485,11 @@
 
       var btn = document.getElementById('btn-cadastrar');
       btn.disabled = true; btn.textContent = 'Enviando…';
+      // Cadastro nao exige mais confirmacao de e-mail (aprovacao manual ja e o
+      // filtro real) — signUp() ja devolve sessao ativa na hora. Suprime o
+      // check automatico do onAuthStateChange pra essa tela de sucesso nao
+      // ser substituida na hora pela tela de "pendente".
+      suprimirCheckAutomatico = true;
       var { error } = await supabase.auth.signUp({
         email: email, password: senha,
         options: { data: {
@@ -492,7 +498,7 @@
         } },
       });
       btn.disabled = false; btn.textContent = 'Solicitar acesso';
-      if (error) { err.textContent = error.message; return; }
+      if (error) { suprimirCheckAutomatico = false; err.textContent = error.message; return; }
       show('view-cadastro-sucesso');
     };
 
@@ -1102,6 +1108,7 @@
     // precisa combinar com getSession() separado — evita corrida entre os dois.
     supabase.auth.onAuthStateChange(function(event, session) {
       if (event === 'PASSWORD_RECOVERY') { show('view-setpassword'); return; }
+      if (suprimirCheckAutomatico) { suprimirCheckAutomatico = false; return; }
       if (session) { checkSupplier(session.user); }
       else { show('view-login'); }
     });
