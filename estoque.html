@@ -584,7 +584,7 @@
     var CONDICAO_USADO_KWS = ['seminovo', 'semi novo', 'usado', 'swap', 'as is'];
     var CORES_CONHECIDAS = [
       'preto', 'branco', 'azul', 'roxo', 'vermelho', 'verde', 'amarelo', 'laranja', 'cinza',
-      'dourado', 'prata', 'grafite', 'rosa', 'bege', 'titanio', 'meia-noite', 'estelar',
+      'dourado', 'prata', 'grafite', 'rosa', 'bege', 'titanio', 'titanium', 'meia-noite', 'estelar',
       'silver', 'natural', 'gold', 'gray', 'starlight', 'citrus', 'deserto', 'desert', 'jet black',
     ];
     var RUIDO_SUBSTRINGS = [
@@ -655,6 +655,24 @@
       return corTexto ? [corTexto] : [];
     }
 
+    // Formato "Modelo – Cor1 | Cor2 | Cor3" numa linha só (comum em listas
+    // organizadas por "grade" de qualidade — o preço fica numa linha
+    // separada). Sem isso, a linha inteira era classificada como "linha de
+    // cor" (por conter palavras de cor) e a lista inteira caía como não
+    // reconhecida, já que nenhuma linha sobrava pra virar "modelo".
+    function extrairCoresListaComTraco(linha) {
+      var idx = linha.search(/[–—]|\s-\s/);
+      if (idx === -1) return null;
+      var antes = linha.slice(0, idx).trim();
+      var depois = linha.slice(idx).replace(/^[\s–—-]+/, '').trim();
+      if (!antes || !depois) return null;
+      var partes = depois.split(/\s*[|,\/]\s*|\s+-\s+/).map(function(s) { return s.trim(); }).filter(Boolean);
+      if (!partes.length) return null;
+      var cores = partes.map(function(p) { return extrairCor(p); });
+      if (cores.some(function(c) { return !c; })) return null; // alguma parte nao e cor conhecida -> nao e esse formato
+      return { modelo: antes, cores: cores };
+    }
+
     function ehLinhaDePrecoPuro(linha) {
       var preco = extrairPreco(linha);
       if (preco === null || extrairCores(linha).length) return false;
@@ -699,6 +717,13 @@
       // linha "filler" exata (nao um trecho dentro de frase maior, pra nao
       // descartar por engano algo como "iPhone disponivel em azul e preto")
       if (LINHA_FILLER_EXATA.indexOf(norm.replace(/[^\p{L}\s:]/gu, '').trim()) !== -1) return true;
+      // cabecalhos estruturais tipo "🔹 GRADE A" / "GRADE AB" / "TABELA
+      // ATUALIZADA DE HOJE" — nao sao produto nem preco, so reduz ruido na
+      // tela de revisao (nao tenta inferir condicao a partir da grade,
+      // ambiguo demais pra assumir automaticamente)
+      var soLetras = norm.replace(/[^\p{L}\s]/gu, '').trim();
+      if (/^grade\s+[a-z]{1,3}$/.test(soLetras) || soLetras === 'grade') return true;
+      if (soLetras.indexOf('tabela atualizada') === 0) return true;
       var semSimbolos = linha.replace(/[^\p{L}\p{N}]/gu, '');
       return semSimbolos.length < 2;
     }
@@ -739,6 +764,37 @@
         linhasUteis.push(linha);
       });
       if (!linhasUteis.length) return;
+
+      // Formato "Modelo – Cor1 | Cor2" — resolvido à parte, antes do fluxo
+      // normal (que trataria essa linha inteira como "linha de cor" e
+      // perderia o bloco todo por falta de linha de modelo).
+      for (var t = 0; t < linhasUteis.length; t++) {
+        var listaTraco = extrairCoresListaComTraco(linhasUteis[t]);
+        if (!listaTraco) continue;
+        var precoTraco = extrairPreco(linhasUteis[t]);
+        if (precoTraco === null) {
+          for (var p = 0; p < linhasUteis.length; p++) {
+            if (p === t) continue;
+            var pv = extrairPreco(linhasUteis[p]);
+            if (pv !== null) { precoTraco = pv; break; }
+          }
+        }
+        if (precoTraco === null) { naoReconhecido.push(blocoOriginal); return; }
+        var capacidadeTraco = extrairCapacidade(listaTraco.modelo);
+        var confiancaTraco = !estado.categoria ? 'baixa' : (capacidadeTraco ? 'alta' : 'media');
+        listaTraco.cores.forEach(function(cor) {
+          ofertas.push({
+            categoria: estado.categoria || '',
+            condicao: estado.condicao,
+            modelo: limparModeloParaExibicao(listaTraco.modelo),
+            cor: cor,
+            variante: capacidadeTraco || '',
+            valor_num: precoTraco,
+            confianca: confiancaTraco,
+          });
+        });
+        return;
+      }
 
       var modeloIdx = -1;
       for (var i = 0; i < linhasUteis.length; i++) {
