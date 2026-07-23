@@ -682,6 +682,12 @@
       return false;
     }
 
+    // Linhas "de aviso" tipo "Disponível:" que ficam sozinhas no bloco (o nome
+    // real do produto veio numa linha separada por linha em branco, num bloco
+    // anterior) — sem isso, essa palavra virava "modelo" por engano (caso
+    // real: fornecedor publicou "Disponível" como nome do iPhone).
+    var LINHA_FILLER_EXATA = ['disponivel', 'disponivel:', 'disponibilidade', 'disponibilidade:', 'em estoque', 'em estoque:'];
+
     function isRuido(linha) {
       var norm = normalizarTexto(linha);
       for (var i = 0; i < RUIDO_SUBSTRINGS.length; i++) {
@@ -690,6 +696,9 @@
       if (norm.indexOf('sem selo') !== -1) return true;
       // linha que e so uma data (ex: "20/07/2026") — nao e produto nem preco
       if (/^\d{1,2}\/\d{1,2}(?:\/\d{2,4})?$/.test(linha.trim())) return true;
+      // linha "filler" exata (nao um trecho dentro de frase maior, pra nao
+      // descartar por engano algo como "iPhone disponivel em azul e preto")
+      if (LINHA_FILLER_EXATA.indexOf(norm.replace(/[^\p{L}\s:]/gu, '').trim()) !== -1) return true;
       var semSimbolos = linha.replace(/[^\p{L}\p{N}]/gu, '');
       return semSimbolos.length < 2;
     }
@@ -704,6 +713,10 @@
         .replace(/(?:R\$|💵)\s?[\d.,]+/g, '')
         .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F1E6}-\u{1F1FF}]/gu, '')
         .replace(/[‼️❌✅🔥]/g, '')
+        // bullets/marcadores de lista soltos no começo ou no meio da linha
+        // (ex: "• iPhone 14 Pro Max" — sobrava o "•" no nome do produto)
+        .replace(/[•‣▪▫●○■□★✦]/g, '')
+        .replace(/^[-*]\s+/, '')
         .replace(/\s+/g, ' ')
         .trim();
     }
