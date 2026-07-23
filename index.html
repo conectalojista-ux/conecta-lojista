@@ -1864,10 +1864,17 @@
       .map(function(el){ return el.dataset.cat; });
     var base = cats.length ? allData.filter(function(o){ return cats.indexOf(o.categoria)>=0; }) : allData;
 
-    // Nível 1 — modelo: opções baseadas só na categoria
+    // Nível 1 — modelo: opções baseadas só na categoria. Agrupado por chave
+    // normalizada (minúsculas) pra "iPhone 12" e "IPHONE 12" (fornecedor
+    // digitou diferente) caírem no mesmo filtro — rótulo exibido prefere a
+    // grafia do catálogo do scraper (o.verificado=false) por ser padronizada.
     var mc = {};
     base.forEach(function(o) {
-      var mn = splitModel(o.modelo).name; if (mn && mn!=='—') mc[mn]=(mc[mn]||0)+1;
+      var mn = splitModel(o.modelo).name; if (!mn || mn==='—') return;
+      var key = mn.toLowerCase();
+      if (!mc[key]) mc[key] = { label: mn, count: 0, temScraper: false };
+      mc[key].count++;
+      if (!o.verificado && !mc[key].temScraper) { mc[key].label = mn; mc[key].temScraper = true; }
     });
     _modList = sortModelNames(Object.keys(mc));
     _modCounts = mc;
@@ -1876,7 +1883,7 @@
 
     // Nível 2 — cor: opções baseadas em categoria + modelos selecionados
     var afterMod = selModelos.size
-      ? base.filter(function(o){ return selModelos.has(splitModel(o.modelo).name); })
+      ? base.filter(function(o){ return selModelos.has(splitModel(o.modelo).name.toLowerCase()); })
       : base;
     var cc = {};
     afterMod.forEach(function(o) {
@@ -1917,7 +1924,7 @@
     var vis = showAllMod ? _modList : _modList.slice(0,MAX_VIS);
     el.innerHTML = vis.map(function(m){
       var chk = selModelos.has(m)?' checked':'';
-      return '<label class="filter-check-item"><input class="fcheck-input" type="checkbox" data-modelo="'+esc(m)+'"'+chk+' onchange="onModeloChg(this)"><span class="fcheck-label">'+esc(m)+'</span><span class="fcheck-count">'+_modCounts[m]+'</span></label>';
+      return '<label class="filter-check-item"><input class="fcheck-input" type="checkbox" data-modelo="'+esc(m)+'"'+chk+' onchange="onModeloChg(this)"><span class="fcheck-label">'+esc(_modCounts[m].label)+'</span><span class="fcheck-count">'+_modCounts[m].count+'</span></label>';
     }).join('');
     var hidden = _modList.length - MAX_VIS;
     if (hidden>0) {
@@ -2381,7 +2388,7 @@
       var r = document.querySelector('input[name="cond"][value="' + params.get('cond') + '"]');
       if (r) r.checked = true;
     }
-    if (params.has('mod')) params.get('mod').split(',').forEach(function(m){ if (m) selModelos.add(m); });
+    if (params.has('mod')) params.get('mod').split(',').forEach(function(m){ if (m) selModelos.add(m.toLowerCase()); });
     if (params.has('cor')) params.get('cor').split(',').forEach(function(c){ if (c) selCores.add(c); });
     if (params.has('arm')) params.get('arm').split(',').forEach(function(a){ if (a) selStorages.add(a); });
     if (params.has('sort')) document.getElementById('sel-sort').value = params.get('sort');
@@ -2459,7 +2466,7 @@
 
     /* modelo */
     if (selModelos.size > 0) {
-      data = data.filter(function(o){ return selModelos.has(splitModel(o.modelo).name); });
+      data = data.filter(function(o){ return selModelos.has(splitModel(o.modelo).name.toLowerCase()); });
     }
 
     /* cor */
@@ -2618,7 +2625,7 @@
     var ct = document.getElementById('f-city').value;
     if (ct) chips.push(chip(ct, 'city', ''));
 
-    selModelos.forEach(function(m){ chips.push(chip(m, 'modelo', m)); });
+    selModelos.forEach(function(m){ chips.push(chip((_modCounts[m] && _modCounts[m].label) || m, 'modelo', m)); });
     selStorages.forEach(function(a){ chips.push(chip(a, 'arm', a)); });
     selCores.forEach(function(c){ chips.push(chip(c, 'cor', c)); });
 
