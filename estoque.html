@@ -219,7 +219,7 @@
         Seu cadastro passa por uma rápida análise manual para proteger nossos lojistas.</p>
       <label>Nome da Empresa</label>
       <input type="text" id="cad-nome" placeholder="Nome da sua loja">
-      <label>WhatsApp (com DDD)</label>
+      <label>WhatsApp da empresa (com DDD)</label>
       <input type="tel" id="cad-whatsapp" placeholder="(11) 99999-9999" inputmode="tel">
       <label>Cidade</label>
       <input type="text" id="cad-cidade" placeholder="São Paulo">
@@ -274,9 +274,18 @@
       <p class="selo-aviso">O selo não representa garantia financeira das negociações realizadas entre os usuários.</p>
 
       <details class="naoreconhecido" id="wrap-perfil-opcional" style="margin:16px 0">
-        <summary>Perfil profissional (opcional)</summary>
+        <summary>Editar dados da empresa</summary>
         <div style="margin-top:14px">
-          <p class="sub" style="margin-bottom:16px">Quanto mais informações você compartilhar, maior será a confiança dos lojistas na sua empresa.<br>As informações abaixo NÃO são obrigatórias.</p>
+          <label>Nome da Empresa</label>
+          <input type="text" id="perfil-nome">
+          <label>WhatsApp da empresa (com DDD)</label>
+          <input type="tel" id="perfil-whatsapp" placeholder="(11) 99999-9999" inputmode="tel">
+          <label>Cidade</label>
+          <input type="text" id="perfil-cidade">
+          <label>Estado</label>
+          <input type="text" id="perfil-estado" maxlength="2" style="text-transform:uppercase">
+
+          <p class="sub" style="margin:10px 0 16px">Perfil profissional — quanto mais informações você compartilhar, maior será a confiança dos lojistas na sua empresa. As informações abaixo NÃO são obrigatórias.</p>
           <label>CNPJ (opcional)</label>
           <input type="text" id="perfil-cnpj" placeholder="00.000.000/0000-00">
           <label>Instagram (se possuir)</label>
@@ -405,7 +414,7 @@
     var suprimirCheckAutomatico = false;
 
     async function checkSupplier(user) {
-      var res = await supabase.from('suppliers').select('nome_fantasia,status,cnpj,instagram,site,categorias').eq('id', user.id).single();
+      var res = await supabase.from('suppliers').select('nome_fantasia,whatsapp,cidade,estado,status,cnpj,instagram,site,categorias').eq('id', user.id).single();
 
       // Conta nova vinda do formulario de autocadastro (view-cadastro) e que
       // ainda nao tem linha em suppliers — cria como pendente agora que a
@@ -431,6 +440,10 @@
     }
 
     function preencherPerfilOpcional(dados) {
+      document.getElementById('perfil-nome').value = dados.nome_fantasia || '';
+      document.getElementById('perfil-whatsapp').value = dados.whatsapp || '';
+      document.getElementById('perfil-cidade').value = dados.cidade || '';
+      document.getElementById('perfil-estado').value = dados.estado || '';
       document.getElementById('perfil-cnpj').value = dados.cnpj || '';
       document.getElementById('perfil-instagram').value = dados.instagram || '';
       document.getElementById('perfil-site').value = dados.site || '';
@@ -443,10 +456,22 @@
     window.salvarPerfil = async function() {
       var err = document.getElementById('err-perfil');
       err.textContent = '';
+      var nome = document.getElementById('perfil-nome').value.trim();
+      var whatsapp = document.getElementById('perfil-whatsapp').value.replace(/\D/g, '');
+      var cidade = document.getElementById('perfil-cidade').value.trim();
+      var estado = document.getElementById('perfil-estado').value.trim().toUpperCase();
+      if (!nome) { err.textContent = 'Informe o nome da sua empresa.'; return; }
+      if (whatsapp.length < 10 || whatsapp.length > 13) { err.textContent = 'Informe um WhatsApp válido com DDD.'; return; }
+      if (!cidade || estado.length !== 2) { err.textContent = 'Informe cidade e estado (sigla, ex: SP).'; return; }
+
       var btn = document.getElementById('btn-salvar-perfil');
       var categorias = Array.from(document.querySelectorAll('.perfil-cat:checked')).map(function(c) { return c.value; });
       btn.disabled = true; btn.textContent = 'Salvando…';
       var { error } = await supabase.rpc('atualizar_perfil_fornecedor', {
+        p_nome_fantasia: nome,
+        p_whatsapp: whatsapp,
+        p_cidade: cidade,
+        p_estado: estado,
         p_cnpj: document.getElementById('perfil-cnpj').value.trim() || null,
         p_instagram: document.getElementById('perfil-instagram').value.trim() || null,
         p_site: document.getElementById('perfil-site').value.trim() || null,
@@ -454,6 +479,7 @@
       });
       btn.disabled = false; btn.textContent = 'Salvar';
       if (error) { err.textContent = 'Não consegui salvar agora — tenta de novo em instantes.'; return; }
+      document.getElementById('welcome-nome').textContent = nome;
       document.getElementById('wrap-perfil-opcional').open = false;
     };
 
