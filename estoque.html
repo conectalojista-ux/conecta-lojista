@@ -105,9 +105,12 @@
     .pos-cadastro-lista li { font-size:13px; color:var(--text); line-height:1.5; padding-left:18px; position:relative; }
     .pos-cadastro-lista li::before { content:'✓'; position:absolute; left:0; color:var(--green); font-weight:700; }
     .selo-verificado {
-      display:inline-flex; align-items:center; gap:5px; background:rgba(34,197,94,.14); color:var(--green);
-      font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px;
+      display:inline-flex; flex-direction:column; align-items:flex-start; gap:2px;
+      background:rgba(34,197,94,.14); color:var(--green);
+      font-size:12px; font-weight:700; padding:8px 14px; border-radius:14px;
     }
+    .selo-verificado small { color:var(--gray); font-weight:500; font-size:11px; }
+    .selo-aviso { color:var(--gray); font-size:11px; margin:6px 0 0; line-height:1.5; }
 
     /* ── ÁREA DE ESTOQUE ─────────────────────────────────── */
     .estoque-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
@@ -265,16 +268,21 @@
         <h1 id="welcome-nome"></h1>
         <button class="btn-secondary" onclick="doLogout()">Sair</button>
       </div>
-      <span class="selo-verificado">✓ FORNECEDOR VERIFICADO</span>
+      <span class="selo-verificado">
+        ✓ FORNECEDOR VERIFICADO
+        <small>Cadastro aprovado pelo Conecta Lojista.</small>
+      </span>
+      <p class="selo-aviso">O selo não representa garantia financeira das negociações realizadas entre os usuários.</p>
 
       <details class="naoreconhecido" id="wrap-perfil-opcional" style="margin:16px 0">
-        <summary>Completar perfil (opcional)</summary>
+        <summary>▼ Perfil profissional (opcional)</summary>
         <div style="margin-top:14px">
+          <p class="sub" style="margin-bottom:16px">Quanto mais informações você compartilhar, maior será a confiança dos lojistas na sua empresa.<br>As informações abaixo NÃO são obrigatórias.</p>
           <label>CNPJ (opcional)</label>
           <input type="text" id="perfil-cnpj" placeholder="00.000.000/0000-00">
-          <label>Instagram (opcional)</label>
+          <label>Instagram (se possuir)</label>
           <input type="text" id="perfil-instagram" placeholder="@sualoja">
-          <label>Site (opcional)</label>
+          <label>Site (se possuir)</label>
           <input type="text" id="perfil-site" placeholder="www.sualoja.com.br">
           <label>Trabalha com</label>
           <label class="check-linha"><input type="checkbox" class="perfil-cat" value="Apple"> Apple</label>
@@ -287,8 +295,9 @@
       </details>
 
       <div class="publicar-intro">
-        <h2>Publicar lista de produtos</h2>
-        <p class="sub">Publique sua lista em menos de 20 segundos. Basta colar a mesma lista que você já envia no WhatsApp ou importar sua planilha Excel.</p>
+        <h2>Atualizar estoque</h2>
+        <p class="sub">Seu estoque é atualizado automaticamente após a publicação.<br>Nenhum produto precisa ser cadastrado individualmente.</p>
+        <p class="sub"><strong style="color:var(--text)">Atualize seu estoque em menos de 20 segundos.</strong><br>Cole a mesma lista que você já envia no WhatsApp ou importe sua planilha Excel.<br>Não é necessário cadastrar produtos individualmente.</p>
         <p class="sub" style="margin-bottom:6px">O Conecta Lojista identifica automaticamente:</p>
         <ul class="lista-identifica">
           <li>Produto</li>
@@ -302,7 +311,7 @@
       <div class="tabs-modo">
         <button type="button" class="tab-modo active" id="tab-colar" onclick="selecionarModo('colar')">Colar lista do WhatsApp</button>
         <button type="button" class="tab-modo" id="tab-planilha" onclick="selecionarModo('planilha')">Importar planilha (Excel/CSV)</button>
-        <button type="button" class="tab-modo" id="tab-meusprodutos" onclick="selecionarModo('meusprodutos')">Meus produtos publicados</button>
+        <button type="button" class="tab-modo" id="tab-meusprodutos" onclick="selecionarModo('meusprodutos')">Meu estoque publicado</button>
       </div>
 
       <div id="modo-colar">
