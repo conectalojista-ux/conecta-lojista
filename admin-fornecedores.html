@@ -59,6 +59,19 @@
     .badge-ativo { background:rgba(34,197,94,.14); color:var(--green); }
     .badge-pendente { background:rgba(251,191,36,.14); color:#fbbf24; }
     .badge-rejeitado { background:rgba(248,113,113,.14); color:#f87171; }
+    .btn-ver-lista { background:none; border:1.5px solid var(--border); color:var(--text); }
+    .painel-estoque {
+      margin-top:12px; padding-top:12px; border-top:1px solid var(--border);
+      overflow-x:auto;
+    }
+    table.estoque-admin { width:100%; border-collapse:collapse; font-size:12.5px; min-width:640px; }
+    table.estoque-admin th {
+      text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.03em;
+      color:var(--gray); padding:6px 8px; border-bottom:1px solid var(--border); white-space:nowrap;
+    }
+    table.estoque-admin td { padding:6px 8px; border-bottom:1px solid var(--border); color:var(--text); }
+    table.estoque-admin tr:last-child td { border-bottom:none; }
+    .flag-suspeito { color:#fbbf24; }
   </style>
 </head>
 <body>
@@ -167,19 +180,65 @@
       }
       wrap.innerHTML = fornecedores.map(function(f) {
         var nomeJs = esc(f.nome_fantasia).replace(/'/g, "\\'");
-        return '<div class="card-pendente" id="ftodos-' + f.id + '">' +
+        return '<div class="card-pendente" style="flex-direction:column;align-items:stretch" id="ftodos-' + f.id + '">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;gap:16px">' +
           '<div class="info"><h3>' + esc(f.nome_fantasia) +
           '<span class="badge-status badge-' + esc(f.status) + '">' + esc(f.status) + '</span></h3>' +
           '<p>' + esc(f.cidade) + ', ' + esc(f.estado) + ' · WhatsApp ' + esc(f.whatsapp) + ' · ' + f.total_ofertas + ' oferta(s) publicada(s)</p></div>' +
           '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
           (f.total_ofertas > 0
-            ? '<button class="btn-apagar" onclick="apagarLista(\'' + f.id + '\', \'' + nomeJs + '\', ' + f.total_ofertas + ')">Apagar lista</button>'
+            ? '<button class="btn-ver-lista" onclick="toggleEstoque(\'' + f.id + '\')" id="btn-ver-' + f.id + '">Ver lista</button>' +
+              '<button class="btn-apagar" onclick="apagarLista(\'' + f.id + '\', \'' + nomeJs + '\', ' + f.total_ofertas + ')">Apagar lista</button>'
             : '') +
           '<button class="btn-rejeitar" onclick="renomear(\'' + f.id + '\', \'' + nomeJs + '\')">Renomear</button>' +
           '<button class="btn-apagar" onclick="apagarFornecedor(\'' + f.id + '\', \'' + nomeJs + '\')">Apagar fornecedor</button>' +
-          '</div></div>';
+          '</div></div>' +
+          '<div id="estoque-' + f.id + '" style="display:none"></div>' +
+          '</div>';
       }).join('');
     }
+
+    var CAT_LABELS_ADMIN = { iphone:'iPhone', ipad:'iPad', macbook:'MacBook', watch:'Apple Watch', acessorios:'Acessórios', eletronicos:'Eletrônicos' };
+
+    // Heuristica simples pra chamar atencao do admin: linhas que parecem
+    // ter escapado errado do parser (nome de produto curto/generico demais,
+    // ou sem preco valido) — nao bloqueia nada, so pinta de amarelo.
+    function pareceSuspeito(o) {
+      var mn = (o.modelo || '').trim();
+      if (mn.length < 6) return true;
+      if (!o.valor_num || o.valor_num <= 0) return true;
+      return false;
+    }
+
+    window.toggleEstoque = async function(id) {
+      var el = document.getElementById('estoque-' + id);
+      var btn = document.getElementById('btn-ver-' + id);
+      if (el.style.display === 'block') { el.style.display = 'none'; btn.textContent = 'Ver lista'; return; }
+
+      el.style.display = 'block';
+      el.innerHTML = '<div class="loading">Carregando…</div>';
+      btn.textContent = 'Ocultar lista';
+      var res = await supabase.rpc('admin_estoque_fornecedor', { p_id: id });
+      if (res.error) { el.innerHTML = '<div class="vazio">Erro ao carregar: ' + esc(res.error.message) + '</div>'; return; }
+      var itens = res.data || [];
+      if (!itens.length) { el.innerHTML = '<div class="vazio">Nenhuma oferta publicada.</div>'; return; }
+      el.innerHTML = '<div class="painel-estoque"><table class="estoque-admin"><thead><tr>' +
+        '<th>Categoria</th><th>Condição</th><th>Modelo</th><th>Cor</th><th>Capacidade</th><th>Preço</th><th>Foto</th>' +
+        '</tr></thead><tbody>' +
+        itens.map(function(o) {
+          var suspeito = pareceSuspeito(o);
+          return '<tr>' +
+            '<td>' + esc(CAT_LABELS_ADMIN[o.categoria] || o.categoria) + '</td>' +
+            '<td>' + esc(o.condicao || '') + '</td>' +
+            '<td class="' + (suspeito ? 'flag-suspeito' : '') + '">' + (suspeito ? '⚠ ' : '') + esc(o.modelo) + '</td>' +
+            '<td>' + esc(o.cor || '—') + '</td>' +
+            '<td>' + esc(o.variante || '—') + '</td>' +
+            '<td>' + esc(o.valor || '—') + '</td>' +
+            '<td>' + (o.foto_url ? 'sim' : '—') + '</td>' +
+            '</tr>';
+        }).join('') +
+        '</tbody></table></div>';
+    };
 
     window.apagarLista = async function(id, nome, total) {
       if (!confirm('Apagar TODAS as ' + total + ' oferta(s) publicadas por "' + nome + '"? Isso remove elas do site na hora. Não apaga a conta, só o estoque — ele pode publicar de novo quando quiser.')) return;
